@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер ловли - Макет</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<body>
+    
+    <div class="main-app-frame"> 
+        
+        <div class="top-left-controls">
+            <button class="about-btn" onclick="window.location.href = 'about.html'">
+                О нас
+            </button>
+            <button class="settings-btn" onclick="openSettings()">
+                ⚙️
+            </button>
+        </div>
+        
+        <div class="categories" role="tablist">
+            <button class="category-btn active" role="tab" aria-selected="true">Двигатель</button>
+            <button class="category-btn" role="tab" aria-selected="false">Трансмиссия</button>
+            <button class="category-btn" role="tab" aria-selected="false">Шасси</button>
+            <button class="category-btn" role="tab" aria-selected="false">Информация</button>
+            <button class="category-btn" role="tab" aria-selected="false">Таблица лидеров</button>
+        </div>
+        
+        <button class="counter-button">
+            <span class="counter-number">0</span>
+            <span class="counter-badge">0</span>
+        </button>
+        
+        <button class="part-selector-button-1 active">Коленвал</button>
+        <button class="part-selector-button-2">Распредвал</button>
+        <button class="part-selector-button-3">Турбина</button>
+        <button class="part-selector-button-4">Прошивка</button>
+    
+        <div class="info-vertical-list">
+            <div class="info-items-container">
+                <div class="info-item">
+                    <div class="info-frame">
+                        <div class="info-glow"></div>
+                        <img src="images/kolenval-sport.png" class="info-image" alt="Коленвал">
+                        <div class="info-stats">
+                            <div class="info-name">Коленвал</div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Самое быстрое время:</span>
+                                <span class="info-stat-value">0 сек</span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Среднее время:</span>
+                                <span class="info-stat-value">0 сек <span class="info-stat-change">(+0.00)</span></span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Общее количество:</span>
+                                <span class="info-stat-value">0 <span class="info-stat-change positive">(+0)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-frame">
+                        <div class="info-glow"></div>
+                        <img src="images/raspredval-sport.png" class="info-image" alt="Распредвал">
+                        <div class="info-stats">
+                            <div class="info-name">Распредвал</div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Самое быстрое время:</span>
+                                <span class="info-stat-value">0 сек</span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Среднее время:</span>
+                                <span class="info-stat-value">0 сек <span class="info-stat-change">(+0.00)</span></span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Общее количество:</span>
+                                <span class="info-stat-value">0 <span class="info-stat-change positive">(+0)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-frame">
+                        <div class="info-glow"></div>
+                        <img src="images/turbina-sport.png" class="info-image" alt="Турбина">
+                        <div class="info-stats">
+                            <div class="info-name">Турбина</div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Самое быстрое время:</span>
+                                <span class="info-stat-value">0 сек</span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Среднее время:</span>
+                                <span class="info-stat-value">0 сек <span class="info-stat-change">(+0.00)</span></span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Общее количество:</span>
+                                <span class="info-stat-value">0 <span class="info-stat-change positive">(+0)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-frame">
+                        <div class="info-glow"></div>
+                        <img src="images/nagnetatel-t2.png" class="info-image" alt="Нагнетатель">
+                        <div class="info-stats">
+                            <div class="info-name">Нагнетатель</div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Самое быстрое время:</span>
+                                <span class="info-stat-value">0 сек</span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Среднее время:</span>
+                                <span class="info-stat-value">0 сек <span class="info-stat-change">(+0.00)</span></span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Общее количество:</span>
+                                <span class="info-stat-value">0 <span class="info-stat-change positive">(+0)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-frame">
+                        <div class="info-glow"></div>
+                        <img src="images/proshivka-sport.png" class="info-image" alt="Прошивка">
+                        <div class="info-stats">
+                            <div class="info-name">Прошивка</div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Самое быстрое время:</span>
+                                <span class="info-stat-value">0 сек</span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Среднее время:</span>
+                                <span class="info-stat-value">0 сек <span class="info-stat-change">(+0.00)</span></span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Общее количество:</span>
+                                <span class="info-stat-value">0 <span class="info-stat-change positive">(+0)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-frame">
+                        <div class="info-glow"></div>
+                        <img src="images/sceplenie-sport.png" class="info-image" alt="Сцепление">
+                        <div class="info-stats">
+                            <div class="info-name">Сцепление</div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Самое быстрое время:</span>
+                                <span class="info-stat-value">0 сек</span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Среднее время:</span>
+                                <span class="info-stat-value">0 сек <span class="info-stat-change">(+0.00)</span></span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Общее количество:</span>
+                                <span class="info-stat-value">0 <span class="info-stat-change positive">(+0)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-frame">
+                        <div class="info-glow"></div>
+                        <img src="images/kpp-sport.png" class="info-image" alt="КПП">
+                        <div class="info-stats">
+                            <div class="info-name">КПП</div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Самое быстрое время:</span>
+                                <span class="info-stat-value">0 сек</span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Среднее время:</span>
+                                <span class="info-stat-value">0 сек <span class="info-stat-change">(+0.00)</span></span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Общее количество:</span>
+                                <span class="info-stat-value">0 <span class="info-stat-change positive">(+0)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-frame">
+                        <div class="info-glow"></div>
+                        <img src="images/differencial-sport.png" class="info-image" alt="Дифференциал">
+                        <div class="info-stats">
+                            <div class="info-name">Дифференциал</div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Самое быстрое время:</span>
+                                <span class="info-stat-value">0 сек</span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Среднее время:</span>
+                                <span class="info-stat-value">0 сек <span class="info-stat-change">(+0.00)</span></span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Общее количество:</span>
+                                <span class="info-stat-value">0 <span class="info-stat-change positive">(+0)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-frame">
+                        <div class="info-glow"></div>
+                        <img src="images/podveska-sport.png" class="info-image" alt="Подвеска">
+                        <div class="info-stats">
+                            <div class="info-name">Подвеска</div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Самое быстрое время:</span>
+                                <span class="info-stat-value">0 сек</span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Среднее время:</span>
+                                <span class="info-stat-value">0 сек <span class="info-stat-change">(+0.00)</span></span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Общее количество:</span>
+                                <span class="info-stat-value">0 <span class="info-stat-change positive">(+0)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="info-frame">
+                        <div class="info-glow"></div>
+                        <img src="images/tormoza-sport.png" class="info-image" alt="Тормоза">
+                        <div class="info-stats">
+                            <div class="info-name">Тормоза</div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Самое быстрое время:</span>
+                                <span class="info-stat-value">0 сек</span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Среднее время:</span>
+                                <span class="info-stat-value">0 сек <span class="info-stat-change">(+0.00)</span></span>
+                            </div>
+                            <div class="info-stat-line">
+                                <span class="info-stat-label">Общее количество:</span>
+                                <span class="info-stat-value">0 <span class="info-stat-change positive">(+0)</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="parts-rows-area">
+        
+            <div id="row-kolenval" class="parts-row active">
+                <div class="part-slot imprize-tier">
+                    <span class="tier-label imprize">improv</span>
+                    <img src="images/kolenval-sport.png" class="part-image" alt="Коленвал improv">
+                    <div class="part-name">Коленвал</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-tier">
+                    <span class="tier-label sport">sport</span>
+                    <img src="images/kolenval-sport.png" class="part-image" alt="Коленвал sport">
+                    <div class="part-name">Коленвал</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-plus-tier">
+                    <span class="tier-label sport-plus">sport+</span>
+                    <img src="images/kolenval-sport.png" class="part-image" alt="Коленвал sport+">
+                    <div class="part-name">Коленвал</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+            </div>
+
+            <div id="row-raspredval" class="parts-row">
+                <div class="part-slot imprize-tier">
+                    <span class="tier-label imprize">improv</span>
+                    <img src="images/raspredval-sport.png" class="part-image" alt="Распредвал improv">
+                    <div class="part-name">Распредвал</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-tier">
+                    <span class="tier-label sport">sport</span>
+                    <img src="images/raspredval-sport.png" class="part-image" alt="Распредвал sport">
+                    <div class="part-name">Распредвал</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-plus-tier">
+                    <span class="tier-label sport-plus">sport+</span>
+                    <img src="images/raspredval-sport.png" class="part-image" alt="Распредвал sport+">
+                    <div class="part-name">Распредвал</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+            </div>
+
+            <div id="row-turbina" class="parts-row">
+                
+                <div class="part-slot imprize-tier">
+                    <span class="tier-label imprize">improv</span>
+                    <img src="images/turbina-sport.png" class="part-image" alt="Турбина improv">
+                    <div class="part-name">Турбина</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+
+                <div class="part-slot imprize-tier">
+                    <span class="tier-label imprize">improv</span>
+                    <img src="images/nagnetatel-t2.png" class="part-image" alt="Нагнетатель T1">
+                    <div class="part-name">Нагнетатель</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+
+                <div class="part-slot sport-tier">
+                    <span class="tier-label sport">sport</span>
+                    <img src="images/turbina-sport.png" class="part-image" alt="Турбина sport">
+                    <div class="part-name">Турбина</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+
+                <div class="part-slot sport-tier">
+                    <span class="tier-label sport">sport</span>
+                    <img src="images/nagnetatel-t2.png" class="part-image" alt="Нагнетатель T2">
+                    <div class="part-name">Нагнетатель</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+
+                <div class="part-slot sport-plus-tier">
+                    <span class="tier-label sport-plus">sport+</span>
+                    <img src="images/turbina-sport.png" class="part-image" alt="Турбина sport+">
+                    <div class="part-name">Турбина</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+
+                <div class="part-slot sport-plus-tier">
+                    <span class="tier-label sport-plus">sport+</span>
+                    <img src="images/nagnetatel-t2.png" class="part-image" alt="Нагнетатель T3">
+                    <div class="part-name">Нагнетатель</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+            </div>
+            
+            <div id="row-proshivka" class="parts-row">
+                <div class="part-slot imprize-tier">
+                    <span class="tier-label imprize">STAGE-1</span>
+                    <img src="images/proshivka-sport.png" class="part-image" alt="Прошивка improv">
+                    <div class="part-name">Прошивка</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-tier">
+                    <span class="tier-label sport">STAGE-2</span>
+                    <img src="images/proshivka-sport.png" class="part-image" alt="Прошивка sport">
+                    <div class="part-name">Прошивка</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-plus-tier">
+                    <span class="tier-label sport-plus">STAGE-3</span>
+                    <img src="images/proshivka-sport.png" class="part-image" alt="Прошивка sport+">
+                    <div class="part-name">Прошивка</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+            </div>
+
+            <div id="row-sceplenie" class="parts-row">
+                <div class="part-slot imprize-tier">
+                    <span class="tier-label imprize">improv</span>
+                    <img src="images/sceplenie-sport.png" class="part-image" alt="Сцепление improv">
+                    <div class="part-name">Сцепление</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-tier">
+                    <span class="tier-label sport">sport</span>
+                    <img src="images/sceplenie-sport.png" class="part-image" alt="Сцепление sport">
+                    <div class="part-name">Сцепление</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-plus-tier">
+                    <span class="tier-label sport-plus">sport+</span>
+                    <img src="images/sceplenie-sport.png" class="part-image" alt="Сцепление sport+">
+                    <div class="part-name">Сцепление</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+            </div>
+
+            <div id="row-kpp" class="parts-row">
+                <div class="part-slot imprize-tier">
+                    <span class="tier-label imprize">improv</span>
+                    <img src="images/kpp-sport.png" class="part-image" alt="КПП improv">
+                    <div class="part-name">КПП</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-tier">
+                    <span class="tier-label sport">sport</span>
+                    <img src="images/kpp-sport.png" class="part-image" alt="КПП sport">
+                    <div class="part-name">КПП</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-plus-tier">
+                    <span class="tier-label sport-plus">sport+</span>
+                    <img src="images/kpp-sport.png" class="part-image" alt="КПП sport+">
+                    <div class="part-name">КПП</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+            </div>
+
+            <div id="row-differencial" class="parts-row">
+                <div class="part-slot imprize-tier">
+                    <span class="tier-label imprize">improv</span>
+                    <img src="images/differencial-sport.png" class="part-image" alt="Дифференциал improv">
+                    <div class="part-name">Дифференциал</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-tier">
+                    <span class="tier-label sport">sport</span>
+                    <img src="images/differencial-sport.png" class="part-image" alt="Дифференциал sport">
+                    <div class="part-name">Дифференциал</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-plus-tier">
+                    <span class="tier-label sport-plus">sport+</span>
+                    <img src="images/differencial-sport.png" class="part-image" alt="Дифференциал sport+">
+                    <div class="part-name">Дифференциал</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+            </div>
+
+            <div id="row-podveska" class="parts-row">
+                <div class="part-slot imprize-tier">
+                    <span class="tier-label imprize">improv</span>
+                    <img src="images/podveska-sport.png" class="part-image" alt="Подвеска improv">
+                    <div class="part-name">Подвеска</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-tier">
+                    <span class="tier-label sport">sport</span>
+                    <img src="images/podveska-sport.png" class="part-image" alt="Подвеска sport">
+                    <div class="part-name">Подвеска</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-plus-tier">
+                    <span class="tier-label sport-plus">sport+</span>
+                    <img src="images/podveska-sport.png" class="part-image" alt="Подвеска sport+">
+                    <div class="part-name">Подвеска</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+            </div>
+
+            <div id="row-tormoza" class="parts-row">
+                <div class="part-slot imprize-tier">
+                    <span class="tier-label imprize">improv</span>
+                    <img src="images/tormoza-sport.png" class="part-image" alt="Тормоза improv">
+                    <div class="part-name">Тормоза</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-tier">
+                    <span class="tier-label sport">sport</span>
+                    <img src="images/tormoza-sport.png" class="part-image" alt="Тормоза sport">
+                    <div class="part-name">Тормоза</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+                <div class="part-slot sport-plus-tier">
+                    <span class="tier-label sport-plus">sport+</span>
+                    <img src="images/tormoza-sport.png" class="part-image" alt="Тормоза sport+">
+                    <div class="part-name">Тормоза</div>
+                    <div class="part-status">Нет в продаже</div>
+                    <div class="action-button-container"></div>
+                </div>
+            </div>
+
+            <div id="row-info" class="parts-row">
+                </div>
+
+            <div id="row-leaderboard" class="parts-row">
+                <div class="leaderboard-tabs">
+                    <button class="leaderboard-tab active" data-category="best-time">Лучшее время</button>
+                    <button class="leaderboard-tab" data-category="avg-time">Среднее время</button>
+                    <button class="leaderboard-tab" data-category="parts-count">Количество деталей</button>
+                </div>
+
+                <div class="leaderboard-category best-time active">
+                    <div class="leaderboard-category-title">Лучшее общее время (сек)</div>
+                    <div class="leaderboard-table-container">
+                        <div class="leaderboard-empty">
+                            <div class="empty-message">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-category avg-time">
+                    <div class="leaderboard-category-title">Среднее общее время (сек)</div>
+                    <div class="leaderboard-table-container">
+                        <div class="leaderboard-empty">
+                            <div class="empty-message">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="leaderboard-category parts-count">
+                    <div class="leaderboard-category-title">Общее количество деталей</div>
+                    <div class="leaderboard-table-container">
+                        <div class="leaderboard-empty">
+                            <div class="empty-message">Загрузка...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="footer-bar">
+            <div class="list-nav">
+                <button class="nav-arrow left">‹</button>
+                <span class="list-text">Листать</span>
+                <button class="nav-arrow right">›</button>
+            </div>
+            <button class="enter-button">Enter | Добавить в корзину / выбрать</button>
+        </div>
+
+        <div id="cartModal" class="cart-modal">
+            <div class="cart-content">
+                <div class="cart-header">
+                    <div class="cart-title">Корзина</div>
+                    <button class="close-cart-btn">&times;</button>
+                </div>
+                
+                <div class="cart-body">
+                    <div class="cart-section">
+                        <h3>Ваши актуальные покупки</h3>
+                        <div class="cart-items">
+                            <div class="empty-cart">Корзина пуста</div>
+                        </div>
+                    </div>
+
+                    <button class="clear-cart-btn">Очистить корзину</button>
+
+                    <button class="buy-btn">Купить</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="settingsModal" class="settings-modal">
+            <div class="settings-content-framed">
+                <div class="settings-header">
+                    <div class="settings-title">Настройки</div>
+                    <button class="close-settings-btn">&times;</button>
+                </div>
+                
+                <div class="settings-list-framed">
+                    
+                    <div class="info-frame settings-frame">
+                        <div class="settings-icon">⌨️</div>
+                        <div class="info-stats">
+                            <div class="info-name">Клавиша ловли</div>
+                            <div class="info-stat-label">Текущая: <span id="currentKeyDisplay" style="color: #fff; font-weight: bold;">H</span></div>
+                            <div class="settings-action-row">
+                                <button id="recordKeyBtn" class="settings-action-btn">Назначить клавишу</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-frame settings-frame">
+                        <div class="settings-icon">🖼️</div>
+                        <div class="info-stats">
+                            <div class="info-name">Задний фон</div>
+                            <div class="info-stat-line">
+                                <select id="bgSelect" class="settings-select-inline">
+                                    <option value="black">Черный (Black)</option>
+                                    <option value="custom">Свой (Загрузить)</option>
+                                </select>
+                            </div>
+                            <div id="customBgUploadArea" class="settings-upload-area" style="display: none;">
+                                <input type="file" id="bgFileInput" accept="image/*" class="custom-file-input">
+                                <div class="info-stat-label small">Картинка сохранится в браузере</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="auth-modal" class="auth-modal">
+            <div class="auth-content settings-content-framed"> <div class="auth-header settings-header">
+                    <span id="auth-title-text" class="auth-title settings-title">Вход</span>
+                    <button class="close-auth-btn" onclick="closeAuthModal()">&times;</button>
+                </div>
+
+                <div class="auth-body">
+                    <div class="auth-form-container">
+                        <input type="text" id="auth-username" class="auth-input" placeholder="Имя пользователя" autocomplete="off">
+                        <input type="password" id="auth-password" class="auth-input" placeholder="Пароль" autocomplete="off">
+                        
+                        <input type="password" id="auth-confirm-password" class="auth-input" placeholder="Подтвердите пароль" style="display: none;">
+                        
+                        <button id="auth-submit-btn" class="auth-submit-btn settings-action-btn" onclick="handleAuthAction()">Войти</button>
+                        <div id="auth-error-msg" class="auth-error" style="display:none; color: #ff453a; margin-top: 10px; font-size: 13px; text-align: center;"></div>
+                    </div>
+                </div>
+
+                <div class="auth-footer">
+                    <span id="auth-footer-text">Нет аккаунта?</span>
+                    <span id="auth-switch-btn" class="auth-switch" onclick="toggleAuthMode()">Регистрация</span>
+                </div>
+            </div>
+        </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
