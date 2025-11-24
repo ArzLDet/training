@@ -295,21 +295,56 @@ window.logout = function() {
     // ==========================================
     // СИСТЕМА ТАБЛИЦ ЛИДЕРОВ
     // ==========================================
+// Новая функция: Считает среднее арифметическое всех личных рекордов
+function calculateAverageOfAllBests() {
+    let totalTime = 0;
+    let partsCount = 0;
 
-    async function updateLeaderboards() {
+    for (const partName in partStats) {
+        // Проверяем, есть ли у детали статистика и установлен ли рекорд (время > 0)
+        if (partStats[partName] && partStats[partName].fastestTime > 0) {
+            totalTime += partStats[partName].fastestTime;
+            partsCount++;
+        }
+    }
+
+    // Если рекордов нет, возвращаем 0
+    if (partsCount === 0) return 0;
+    
+    // Возвращаем среднее арифметическое
+    return totalTime / partsCount;
+}
+
+async function updateLeaderboards() {
         if (!currentUser) return;
         
-        const username = await getUsername(currentUser.uid);
-        if (!username) return;
+        // ПОЛУЧАЕМ ИМЯ И ЦВЕТ
+        const uSnap = await db.ref(`users/${currentUser.uid}`).once('value');
+        const uData = uSnap.val();
+        const username = uData.username;
+        const color = uData.color || '#ffffff'; // Берем цвет
 
-        if (userStats.bestTotalTime > 0) {
+        if (!username) return;
+        
+        // ...дальше идет твой код calculateAverageOfAllBests()...
+        // ВАЖНО: В каждом .set({}) ниже добавь строчку: color: color,
+
+        // --- ИЗМЕНЕНИЕ НАЧАЛО ---
+        // 1. Считаем среднее арифметическое рекордов по деталям
+        const avgBestPartsTime = calculateAverageOfAllBests();
+
+        // 2. Если результат есть (> 0), отправляем его в таблицу "Лучшее время"
+        if (avgBestPartsTime > 0) {
             await db.ref('leaderboard_best_time').child(currentUser.uid).set({
                 username: username,
-                bestTotalTime: userStats.bestTotalTime,
+                // Используем то же поле bestTotalTime, чтобы таблица отображалась корректно
+                bestTotalTime: avgBestPartsTime, 
                 timestamp: Date.now()
             });
         }
+        // --- ИЗМЕНЕНИЕ КОНЕЦ ---
 
+        // Остальные таблицы (среднее время сессий и кол-во деталей) оставляем как есть
         if (userStats.averageTotalTime > 0) {
             await db.ref('leaderboard_avg_time').child(currentUser.uid).set({
                 username: username,
@@ -692,10 +727,12 @@ async function loadPartsCountLeaderboard() {
     const bgSelect = document.getElementById('bgSelect');
     const bgFileInput = document.getElementById('bgFileInput');
 
-    if (settingsBtn) {
+if (settingsBtn) {
         settingsBtn.onclick = (e) => {
             e.preventDefault();
             if (settingsModal) settingsModal.style.display = 'block';
+            
+            loadProfile(); // <--- ДОБАВИТЬ ЭТУ СТРОКУ
         };
     }
 
@@ -934,7 +971,6 @@ async function loadPartsCountLeaderboard() {
     }
 
     function updatePartStats(partName, catchTime) {
-        // Если статистики почему-то нет, создаем структуру
         if (!partStats[partName]) {
             partStats[partName] = { fastestTime: 0, averageTime: 0, totalCount: 0, lastTime: 0 };
         }
@@ -942,20 +978,27 @@ async function loadPartsCountLeaderboard() {
         const stats = partStats[partName];
         const previousAverage = stats.averageTime;
         
-        // Логика обновления рекордов
+        let isNewRecord = false; // Флаг: побит ли рекорд
+
+        // Логика обновления лучшего времени ДЕТАЛИ
         if (stats.fastestTime === 0 || catchTime < stats.fastestTime) {
             stats.fastestTime = catchTime;
+            isNewRecord = true; // Запоминаем, что это новый рекорд
         }
 
         stats.totalCount++;
-        stats.lastTime = previousAverage; // Тут может быть ошибка в логике "изменения", но оставляю как у вас было
+        stats.lastTime = previousAverage; 
         stats.averageTime = ((stats.averageTime * (stats.totalCount - 1)) + catchTime) / stats.totalCount;
         
-        // ОБНОВЛЕНИЕ: Сохраняем в Firebase, а не в localStorage
         if (currentUser) {
-            saveUserPartStats();
+            saveUserPartStats(); // Сохраняем личную статистику
+            
+            // ВАЖНО: Если мы поставили новый рекорд на детали,
+            // среднее арифметическое рекордов изменилось -> обновляем лидерборд немедленно
+            if (isNewRecord) {
+                updateLeaderboards();
+            }
         } else {
-            // Если игрок не вошел, можно временно сохранить в переменную, но не в базу
             console.log("Игрок не авторизован, статистика не сохранена в облако");
         }
         
@@ -1529,9 +1572,7 @@ async function loadPartsCountLeaderboard() {
         if (success) canSpawnNewParts = false;
     }
 
-    /* ВСТАВИТЬ В script.js ВМЕСТО СТАРОЙ ФУНКЦИИ handleGlobalKeydown */
-
-/* ЗАМЕНИТЬ ФУНКЦИЮ handleGlobalKeydown В script.js НА ЭТУ */
+    /* ЗАМЕНИТЬ ФУНКЦИЮ handleGlobalKeydown В script.js НА ЭТУ */
 
 function handleGlobalKeydown(event) {
     // ==========================================
@@ -1610,7 +1651,6 @@ function handleGlobalKeydown(event) {
         }
     }
 }
-
     const enterButton = document.querySelector('.enter-button');
     if (enterButton) {
         enterButton.addEventListener('click', () => {
@@ -1670,4 +1710,5 @@ function handleGlobalKeydown(event) {
 
     scaleApp();
     window.addEventListener('resize', scaleApp);
+
 });
