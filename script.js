@@ -1529,45 +1529,78 @@ async function loadPartsCountLeaderboard() {
         if (success) canSpawnNewParts = false;
     }
 
-    function handleGlobalKeydown(event) {
-        trackUserActivity();
+    /* ВСТАВИТЬ В script.js ВМЕСТО СТАРОЙ ФУНКЦИИ handleGlobalKeydown */
 
-        if (event.key.toLowerCase() === userSettings.catchKey.toLowerCase()) {
+function handleGlobalKeydown(event) {
+    // ==========================================
+    // ФИКС БАГА: БЛОКИРОВКА ЛОВЛИ ПРИ ВВОДЕ ТЕКСТА
+    // ==========================================
+    
+    // 1. Проверяем, открыты ли модальные окна
+    const authModal = document.getElementById('auth-modal');
+    const settingsModal = document.getElementById('settingsModal');
+    const cartModal = document.getElementById('cartModal'); // На всякий случай
+
+    // Проверяем стиль display (block значит открыто)
+    const isAuthOpen = authModal && getComputedStyle(authModal).display === 'block';
+    const isSettingsOpen = settingsModal && getComputedStyle(settingsModal).display === 'block';
+    const isCartOpen = cartModal && getComputedStyle(cartModal).display === 'block';
+    
+    // 2. Проверяем, находится ли фокус в поле ввода (input или textarea)
+    const isTyping = event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA';
+
+    // Если открыто любое окно ИЛИ пользователь печатает
+    if (isAuthOpen || isSettingsOpen || isCartOpen || isTyping) {
+        
+        // УЛУЧШЕНИЕ UX: Если мы в окне авторизации и нажали Enter -> имитируем нажатие кнопки "Войти"
+        if (isAuthOpen && event.key === 'Enter') {
             event.preventDefault();
-            activateCatchingMode();
-            return;
+            handleAuthAction(); // Вызываем функцию входа
         }
+        
+        // ПРЕРЫВАЕМ ФУНКЦИЮ: Игра не будет реагировать на клавиши ловли
+        return; 
+    }
+    // ==========================================
 
-        const activeCategory = document.querySelector('.category-btn.active');
-        if (activeCategory && activeCategory.textContent === 'Информация') {
-            switch(event.key) {
-                case 'ArrowDown': case 'PageDown': event.preventDefault(); scrollInfoList('down'); break;
-                case 'ArrowUp': case 'PageUp': event.preventDefault(); scrollInfoList('up'); break;
-                case 'Home': event.preventDefault(); const l1 = document.querySelector('.info-vertical-list'); if (l1) l1.scrollTop = 0; break;
-                case 'End': event.preventDefault(); const l2 = document.querySelector('.info-vertical-list'); if (l2) l2.scrollTop = l2.scrollHeight; break;
-            }
-        } else {
-            switch(event.key) {
-                case 'ArrowLeft': event.preventDefault(); prevSlot(); break;
-                case 'ArrowRight': event.preventDefault(); nextSlot(); break;
-                case 'End': event.preventDefault(); goToLastSlot(); break;
-                case 'Home': event.preventDefault(); goToFirstSlot(); break;
-                case 'Enter':
-                    event.preventDefault();
-                    if (isCatchingMode) {
-                        enterPressCount++;
-                        if (enterPressCount >= MAX_ENTER_PRESSES) {
-                            console.warn('AHK DETECTED: Limit reached. Resetting session.');
-                            abortCatchingSession(); 
-                            return; 
-                        }
+    trackUserActivity();
+
+    if (event.key.toLowerCase() === userSettings.catchKey.toLowerCase()) {
+        event.preventDefault();
+        activateCatchingMode();
+        return;
+    }
+
+    const activeCategory = document.querySelector('.category-btn.active');
+    if (activeCategory && activeCategory.textContent === 'Информация') {
+        switch(event.key) {
+            case 'ArrowDown': case 'PageDown': event.preventDefault(); scrollInfoList('down'); break;
+            case 'ArrowUp': case 'PageUp': event.preventDefault(); scrollInfoList('up'); break;
+            case 'Home': event.preventDefault(); const l1 = document.querySelector('.info-vertical-list'); if (l1) l1.scrollTop = 0; break;
+            case 'End': event.preventDefault(); const l2 = document.querySelector('.info-vertical-list'); if (l2) l2.scrollTop = l2.scrollHeight; break;
+        }
+    } else {
+        switch(event.key) {
+            case 'ArrowLeft': event.preventDefault(); prevSlot(); break;
+            case 'ArrowRight': event.preventDefault(); nextSlot(); break;
+            case 'End': event.preventDefault(); goToLastSlot(); break;
+            case 'Home': event.preventDefault(); goToFirstSlot(); break;
+            case 'Enter':
+                event.preventDefault();
+                if (isCatchingMode) {
+                    enterPressCount++;
+                    if (enterPressCount >= MAX_ENTER_PRESSES) {
+                        console.warn('AHK DETECTED: Limit reached. Resetting session.');
+                        abortCatchingSession(); 
+                        return; 
                     }
-                    const selectedSlot = currentRow.querySelector('.part-slot.selected');
-                    if (selectedSlot) handleSlotAction(selectedSlot);
-                    break;
-            }
+                }
+                const selectedSlot = currentRow.querySelector('.part-slot.selected');
+                if (selectedSlot) handleSlotAction(selectedSlot);
+                break;
         }
     }
+}
 
     const enterButton = document.querySelector('.enter-button');
     if (enterButton) {
