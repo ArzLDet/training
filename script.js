@@ -1531,46 +1531,55 @@ async function loadPartsCountLeaderboard() {
 
     /* ВСТАВИТЬ В script.js ВМЕСТО СТАРОЙ ФУНКЦИИ handleGlobalKeydown */
 
+/* ЗАМЕНИТЬ ФУНКЦИЮ handleGlobalKeydown В script.js НА ЭТУ */
+
 function handleGlobalKeydown(event) {
     // ==========================================
-    // ФИКС БАГА: БЛОКИРОВКА ЛОВЛИ ПРИ ВВОДЕ ТЕКСТА
+    // ФИКС БАГА: ПОЛНАЯ БЛОКИРОВКА ПРИ ВВОДЕ
     // ==========================================
     
-    // 1. Проверяем, открыты ли модальные окна
+    // 1. Проверяем, где стоит курсор (активный элемент)
+    const activeEl = document.activeElement;
+    const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+
+    // 2. Проверяем, открыты ли модальные окна (Регистрация, Настройки, Корзина)
     const authModal = document.getElementById('auth-modal');
     const settingsModal = document.getElementById('settingsModal');
-    const cartModal = document.getElementById('cartModal'); // На всякий случай
-
-    // Проверяем стиль display (block значит открыто)
-    const isAuthOpen = authModal && getComputedStyle(authModal).display === 'block';
-    const isSettingsOpen = settingsModal && getComputedStyle(settingsModal).display === 'block';
-    const isCartOpen = cartModal && getComputedStyle(cartModal).display === 'block';
+    const cartModal = document.getElementById('cartModal');
     
-    // 2. Проверяем, находится ли фокус в поле ввода (input или textarea)
-    const isTyping = event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA';
+    // Функция проверки видимости (работает даже если display задан через CSS класс)
+    const isVisible = (el) => el && (el.style.display === 'block' || getComputedStyle(el).display === 'block');
+    
+    const isAnyModalOpen = isVisible(authModal) || isVisible(settingsModal) || isVisible(cartModal);
 
-    // Если открыто любое окно ИЛИ пользователь печатает
-    if (isAuthOpen || isSettingsOpen || isCartOpen || isTyping) {
+    // ГЛАВНОЕ УСЛОВИЕ: Если мы печатаем ИЛИ открыто любое окно -> СТОП
+    if (isTyping || isAnyModalOpen) {
         
-        // УЛУЧШЕНИЕ UX: Если мы в окне авторизации и нажали Enter -> имитируем нажатие кнопки "Войти"
-        if (isAuthOpen && event.key === 'Enter') {
+        // Удобство: Нажатие Enter в окне входа нажимает кнопку "Войти"
+        if (isVisible(authModal) && event.key === 'Enter') {
             event.preventDefault();
-            handleAuthAction(); // Вызываем функцию входа
+            // Проверка, чтобы не вызывать ошибку, если функции нет
+            if (typeof window.handleAuthAction === 'function') {
+                window.handleAuthAction(); 
+            }
         }
         
-        // ПРЕРЫВАЕМ ФУНКЦИЮ: Игра не будет реагировать на клавиши ловли
+        // ПРЕРЫВАЕМ ФУНКЦИЮ. Код игры ниже НЕ выполнится.
         return; 
     }
     // ==========================================
 
+    // ДАЛЬШЕ ИДЕТ ОБЫЧНЫЙ КОД ИГРЫ
     trackUserActivity();
 
+    // Проверка клавиши ловли (h или другая)
     if (event.key.toLowerCase() === userSettings.catchKey.toLowerCase()) {
         event.preventDefault();
         activateCatchingMode();
         return;
     }
 
+    // Навигация
     const activeCategory = document.querySelector('.category-btn.active');
     if (activeCategory && activeCategory.textContent === 'Информация') {
         switch(event.key) {
