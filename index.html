@@ -17,9 +17,30 @@
             <button class="about-btn" onclick="window.location.href = 'about.html'">
                 О нас
             </button>
+            
+<button class="comp-btn" onclick="openCompModal()" title="Соревнования">
+    🏆
+</button>
+
             <button class="settings-btn" onclick="openSettings()">
                 ⚙️
             </button>
+        </div>
+
+        <div class="fullscreen-notification" id="fullscreenNotification">
+            <div class="notification-content">
+                Войдите в полноэкранный режим нажав кнопку <span class="key-button">F11</span>
+            </div>
+        </div>
+
+        <div class="invite-notification" id="inviteNotification">
+            <div class="notification-content invite-content">
+                <span id="inviteText">Игрок зовет в лобби</span>
+                <div class="invite-actions">
+                    <button class="invite-accept-btn" onclick="acceptInvite()">✔</button>
+                    <button class="invite-decline-btn" onclick="declineInvite()">✖</button>
+                </div>
+            </div>
         </div>
         
         <div class="categories" role="tablist">
@@ -586,8 +607,30 @@
                     <div class="settings-title">Настройки</div>
                     <button class="close-settings-btn">&times;</button>
                 </div>
-                
+
                 <div class="settings-list-framed">
+                    
+                    <div id="profile-settings-block" class="info-frame settings-frame" style="display: none;">
+                        <div class="settings-icon">👤</div>
+                        <div class="info-stats">
+                            <div class="info-name">Профиль</div>
+                            
+                            <div style="margin-top: 5px; width: 100%;">
+                                <span class="info-stat-label">Никнейм:</span>
+                                <input type="text" id="profile-nick" class="settings-select-inline" placeholder="Ваш ник" maxlength="15">
+                            </div>
+<div style="margin-top: 8px; width: 100%;">
+        <span class="info-stat-label">Сервер:</span>
+        <input type="number" id="profile-server" class="settings-select-inline" placeholder="№" min="1" max="30">
+    </div>
+
+                            <div class="settings-action-row">
+                                <button onclick="saveProfile()" class="settings-action-btn">СОХРАНИТЬ</button>
+                            </div>
+                            
+                            <div id="profile-status" style="font-size: 10px; margin-top: 5px; min-height: 5px; color: #888; text-align: center;"></div>
+                        </div>
+                    </div>
                     
                     <div class="info-frame settings-frame">
                         <div class="settings-icon">⌨️</div>
@@ -622,7 +665,8 @@
         </div>
 
         <div id="auth-modal" class="auth-modal">
-            <div class="auth-content settings-content-framed"> <div class="auth-header settings-header">
+            <div class="auth-content settings-content-framed"> 
+                <div class="auth-header settings-header">
                     <span id="auth-title-text" class="auth-title settings-title">Вход</span>
                     <button class="close-auth-btn" onclick="closeAuthModal()">&times;</button>
                 </div>
@@ -644,6 +688,143 @@
                     <span id="auth-switch-btn" class="auth-switch" onclick="toggleAuthMode()">Регистрация</span>
                 </div>
             </div>
+        </div>
+
+        <div id="player-stats-modal" class="settings-modal">
+            <div class="settings-content-framed adaptive-black" style="width: 550px; height: 80vh; max-height: 800px; display: flex; flex-direction: column;">
+                
+                <div class="settings-header" style="flex-shrink: 0;">
+                    <div class="settings-title" id="player-stats-title">Статистика</div>
+                    <button class="close-settings-btn" onclick="closePlayerStatsModal()">&times;</button>
+                </div>
+
+                <div class="auth-body" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 20px;">
+                    <div id="player-stats-container">
+                        </div>
+                </div>
+            </div>
+        </div>
+        
+      <div id="compModal" class="settings-modal">
+    <div class="settings-content-framed adaptive-black" style="width: 700px; height: 600px; display: flex; flex-direction: column; position: relative;">
+        
+    <div id="createRoomOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #171923; z-index: 999; flex-direction: column; align-items: center; justify-content: center;">
+    <h3 style="color: white; margin-bottom: 20px; font-size: 24px;">Настройки комнаты</h3>
+    
+    <div class="settings-list-framed" style="width: 400px; background: transparent;">
+        
+        <div class="info-frame settings-frame">
+            <div class="info-stats">
+                <div class="info-name">Игроки</div>
+                <div class="info-stat-line">
+                    <select id="newRoomSize" class="settings-select-inline">
+                        <option value="2">2 Игрока</option>
+                        <option value="3" selected>3 Игрока</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-frame settings-frame">
+            <div class="info-stats">
+                <div class="info-name">Количество раундов</div>
+                <div class="info-stat-line">
+                    <input type="number" id="newRoomRounds" class="settings-select-inline" value="10" min="1" max="50" placeholder="10">
+                </div>
+            </div>
+        </div>
+
+        <div class="info-frame settings-frame">
+            <div class="info-stats">
+                <div class="info-name">КД между раундами (сек)</div>
+                <div class="info-stat-line">
+                    <input type="number" id="newRoomDelay" class="settings-select-inline" value="3" min="1" max="10" placeholder="3">
+                </div>
+            </div>
+        </div>
+
+        <div class="info-frame settings-frame">
+            <div class="info-stats">
+                <div class="info-name">Доступ</div>
+                <div class="info-stat-line">
+                    <select id="newRoomPrivacy" class="settings-select-inline">
+                        <option value="public">🔓 Открытая</option>
+                        <option value="private">🔒 Закрытая</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-action-row" style="margin-top: 30px;">
+            <button class="settings-action-btn" style="background: #4CAF50; color: white; height: 45px; font-size: 14px;" onclick="confirmCreateRoom()">СОЗДАТЬ И ВОЙТИ</button>
+            <button class="settings-action-btn" style="margin-top: 10px; background: rgba(255,255,255,0.05);" onclick="closeCreateOverlay()">ОТМЕНА</button>
+        </div>
+
+    </div>
+</div>
+
+        <div class="settings-header">
+            <div class="settings-title">🏆 Соревнования</div>
+            <button class="close-settings-btn" onclick="closeCompModal()">&times;</button>
+        </div>
+
+        <div id="comp-tab-rooms" class="comp-tab-content active" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; position: relative;">
+            
+            <div id="currentRoomPanel" style="display: none; flex: 1; flex-direction: column; padding: 20px;">
+                <div style="border: 1px solid #4CAF50; padding: 15px; border-radius: 8px; background: rgba(76, 175, 80, 0.05); height: 100%; display: flex; flex-direction: column;">
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                        <div>
+                            <h4 style="color: #4CAF50; margin: 0; font-size: 18px;">Комната игрока: <span id="lobbyHostName" style="color: white;">Загрузка...</span></h4>
+                            <div style="font-size: 11px; color: #888; margin-top: 5px;">Ожидаем игроков...</div>
+                        </div>
+                        <button class="settings-action-btn" onclick="copyRoomLink()" style="width: auto; font-size: 12px; padding: 8px 15px; background: #2AABEE; color: white; border: none;">🔗 Скопировать ссылку</button>
+                    </div>
+                    
+                    <div id="roomPlayersList" class="room-players-grid" style="justify-content: center; margin: 30px 0; gap: 20px; flex: 1; align-items: center;"></div>
+                    
+                    <div class="room-actions" style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
+                        
+                        <button id="readyBtn" class="settings-action-btn" style="width: 250px; height: 50px; background: #333; font-size: 16px;" onclick="toggleReady()">⏳ Я ГОТОВ</button>
+
+                        <button id="startGameBtn" class="settings-action-btn" style="background: #4CAF50; color: white; border-color: #4CAF50; display: none; width: 250px; height: 50px; font-size: 18px; font-weight: bold; box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);" onclick="startCompGame()">НАЧАТЬ ИГРУ</button>
+                        
+                        <div id="waitingText" style="color: #888; font-size: 13px; margin-top: 5px; display: none;">Ждем готовности...</div>
+
+                        <div style="margin-top: 15px;">
+                            <button class="settings-action-btn" style="background: rgba(244, 67, 54, 0.2); color: #ff6b6b; border-color: #f44336; width: 150px;" onclick="leaveRoom()">Выйти</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="roomsBrowserPanel" style="display: flex; flex-direction: column; height: 100%;">
+                <div id="lobbyControls" class="comp-controls" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(0,0,0,0.2);">
+                    <div style="color: #ccc; font-size: 13px;">Активные лобби</div>
+                    <button class="settings-action-btn" onclick="openCreateOverlay()" style="width: auto; padding: 0 20px; background: #2AABEE; color: white; border-color: #2AABEE;">➕ Создать комнату</button>
+                </div>
+
+                <div id="publicRoomsBlock" style="padding: 0 20px; flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                    <div id="roomsList" class="leaderboard-table-container" style="flex: 1; margin-top: 10px;">
+                        <div class="leaderboard-empty">Нет активных комнат</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="comp-tab-top" class="comp-tab-content" style="display: none; padding: 20px; height: 100%; overflow: hidden;">
+            <div id="compLeaderboard" class="leaderboard-table-container" style="height: 100%;">
+                 <div class="leaderboard-empty">Загрузка...</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+        <div id="compOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; flex-direction: column; justify-content: center; align-items: center; color: white;">
+            <h1 id="compOverlayTitle" style="font-size: 40px; color: #FFD700;">Раунд 1/10</h1>
+            <div id="compOverlayTimer" style="font-size: 80px; font-weight: bold;">10</div>
+            <div id="compOverlayMessage" style="font-size: 20px; color: #ccc;">Приготовьтесь...</div>
         </div>
     
     <script src="script.js"></script>
