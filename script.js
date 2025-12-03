@@ -1456,22 +1456,27 @@ function updateUserInterface() {
         return unavailableParts;
     }
 
-    function abortCatchingSession() {
-        cartItems = [];
-        itemCount = 0;
-        updateCounter();
-        updateCartDisplay();
-        clearSpawnedParts(); 
-        isCatchingMode = false;
-        canSpawnNewParts = true;
-        enterPressCount = 0;
-        resetCatchTimer();
-        if (sessionTimeout) {
-            clearTimeout(sessionTimeout);
-            sessionTimeout = null;
-        }
-        if (!compGameActive) alert('Сессия прервана системой защиты');
+// Изменяем функцию, добавляя параметр silent (тихий режим)
+function abortCatchingSession(silent = false) {
+    cartItems = [];
+    itemCount = 0;
+    updateCounter();
+    updateCartDisplay();
+    clearSpawnedParts(); 
+    isCatchingMode = false;
+    canSpawnNewParts = true;
+    enterPressCount = 0;
+    resetCatchTimer();
+    if (sessionTimeout) {
+        clearTimeout(sessionTimeout);
+        sessionTimeout = null;
     }
+    
+    // Если НЕ соревнование и НЕ тихий режим — показываем уведомление
+    if (!compGameActive && !silent) {
+        alert('Сессия прервана системой защиты');
+    }
+}
 
     function spawnRandomPartsInSections() {
         const unavailableParts = getUnavailableSportPlusParts();
@@ -1997,8 +2002,8 @@ function updateUserInterface() {
         settings: {
             maxPlayers: parseInt(size),
             isPrivate: privacy === 'private',
-            totalRounds: rounds,        // Сохраняем кол-во раундов
-            roundDelay: delay * 1000    // Сохраняем КД (в миллисекундах)
+            totalRounds: rounds,        
+            roundDelay: delay * 1000    
         },
         players: {
             [currentUser.uid]: { name: username, ready: false, score: 0, totalTime: 0 } 
@@ -2011,6 +2016,22 @@ function updateUserInterface() {
     document.getElementById('currentRoomPanel').style.display = 'flex';
     
     subscribeToMyRoom();
+
+    // === НОВАЯ ЛОГИКА: Таймер на 5 минут (300000 мс) ===
+    setTimeout(async () => {
+        // Проверяем, нахожусь ли я все еще в этой комнате и являюсь ли хостом
+        if (currentUser && currentRoomId === roomRef.key) {
+            const snap = await roomRef.once('value');
+            const data = snap.val();
+            
+            // Если комната существует и статус все еще 'waiting' (игра не началась)
+            if (data && data.status === 'waiting' && data.host === currentUser.uid) {
+                // Удаляем комнату и выходим
+                alert("Комната закрыта из-за отсутствия активности (5 минут)");
+                leaveRoom(); 
+            }
+        }
+    }, 300000); // 5 минут
 };
 
     window.leaveRoom = async function() {
@@ -2036,16 +2057,17 @@ function updateUserInterface() {
         subscribeToRooms(); 
     };
 
-    function resetCompState() {
-        currentRoomId = null;
-        isMyReady = false;
-        compGameActive = false;
-        compRound = 0;
-        unsubscribeFromMyRoom();
-        
-        clearSpawnedParts();
-        abortCatchingSession();
-    }
+function resetCompState() {
+    currentRoomId = null;
+    isMyReady = false;
+    compGameActive = false;
+    compRound = 0;
+    unsubscribeFromMyRoom();
+    
+    clearSpawnedParts();
+    // Передаем true, чтобы не было уведомления при выходе
+    abortCatchingSession(true); 
+}
 
     window.joinRoom = async function(roomId) {
         if(!currentUser) { showAuthModal(); return; }
