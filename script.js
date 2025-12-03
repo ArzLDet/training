@@ -97,35 +97,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const authSwitchBtn = document.getElementById('auth-switch-btn');
     const authErrorMsg = document.getElementById('auth-error-msg');
 
-// Проверка авторизации при загрузке
+   // Проверка авторизации при загрузке
     auth.onAuthStateChanged((user) => {
         if (user) {
             currentUser = user;
             // ЗАГРУЖАЕМ ВСЮ СТАТИСТИКУ
             loadUserStats();      // Общая статистика (время сессий)
-            loadUserPartStats();  // <--- НОВОЕ: Детальная статистика по запчастям
+            loadUserPartStats();  // Детальная статистика по запчастям
             
-            updateUserInterface();
+            // --- ИСПРАВЛЕНИЕ: Удалена строка initInviteListener(), которая ломала код ---
+            // initInviteListener(); 
+            
+            updateUserInterface(); // Теперь эта функция выполнится успешно
             console.log("Пользователь авторизован:", user.uid);
             closeAuthModal();
         } else {
             currentUser = null;
             console.log("Пользователь не авторизован");
             
-            // СБРОС ПРИ ВЫХОДЕ (или если не вошел)
-            // Обнуляем общую статистику
+            // СБРОС ПРИ ВЫХОДЕ
             userStats = {
                 bestTotalTime: 0,
                 averageTotalTime: 0,
                 totalPartsCaught: 0,
                 sessionsCompleted: 0
             };
-            // Обнуляем детальную статистику деталей
-            initStats(); // Эта функция теперь ставит нули (см. Шаг 1)
+            initStats(); 
             
             updateUserInterface();
         }
-    }); 
+    });
 
     // --- Функции управления UI авторизации ---
 
@@ -216,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 await db.ref('username_lookup').child(username).set(user.uid);
                 
                 console.log("Регистрация успешна");
-                // Вход произойдет автоматически через onAuthStateChanged
 
             } catch (error) {
                 console.error("Auth error:", error);
@@ -251,7 +251,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-window.logout = function() {
+    window.logout = function() {
+        // При выходе выходим из комнаты если были
+        if(currentRoomId) leaveRoom();
+
         auth.signOut().then(() => {
             currentUser = null;
             // Сбрасываем общую статистику
@@ -293,69 +296,68 @@ window.logout = function() {
     }
 
     // ==========================================
-    // СИСТЕМА ТАБЛИЦ ЛИДЕРОВ
+    // СИСТЕМА ТАБЛИЦ ЛИДЕРОВ (ОБЫЧНАЯ)
     // ==========================================
-// Новая функция: Считает среднее арифметическое всех личных рекордов
-function calculateAverageOfAllBests() {
-    let totalTime = 0;
-    let partsCount = 0;
+    
+    // Новая функция: Считает среднее арифметическое всех личных рекордов
+    function calculateAverageOfAllBests() {
+        let totalTime = 0;
+        let partsCount = 0;
 
-    for (const partName in partStats) {
-        // Проверяем, есть ли у детали статистика и установлен ли рекорд (время > 0)
-        if (partStats[partName] && partStats[partName].fastestTime > 0) {
-            totalTime += partStats[partName].fastestTime;
-            partsCount++;
+        for (const partName in partStats) {
+            // Проверяем, есть ли у детали статистика и установлен ли рекорд (время > 0)
+            if (partStats[partName] && partStats[partName].fastestTime > 0) {
+                totalTime += partStats[partName].fastestTime;
+                partsCount++;
+            }
         }
+
+        // Если рекордов нет, возвращаем 0
+        if (partsCount === 0) return 0;
+        
+        // Возвращаем среднее арифметическое
+        return totalTime / partsCount;
     }
 
-    // Если рекордов нет, возвращаем 0
-    if (partsCount === 0) return 0;
-    
-    // Возвращаем среднее арифметическое
-    return totalTime / partsCount;
-}
-
-async function updateLeaderboards() {
+    async function updateLeaderboards() {
         if (!currentUser) return;
         
-        // ПОЛУЧАЕМ ИМЯ И ЦВЕТ
+        // ПОЛУЧАЕМ ИМЯ И СЕРВЕР ИЗ ПРОФИЛЯ
         const uSnap = await db.ref(`users/${currentUser.uid}`).once('value');
         const uData = uSnap.val();
         const username = uData.username;
-        const color = uData.color || '#ffffff'; // Берем цвет
+        const server = uData.server || null; // Читаем сервер
 
         if (!username) return;
         
-        // ...дальше идет твой код calculateAverageOfAllBests()...
-        // ВАЖНО: В каждом .set({}) ниже добавь строчку: color: color,
-
-        // --- ИЗМЕНЕНИЕ НАЧАЛО ---
-        // 1. Считаем среднее арифметическое рекордов по деталям
+        // 1. Считаем среднее
         const avgBestPartsTime = calculateAverageOfAllBests();
 
-        // 2. Если результат есть (> 0), отправляем его в таблицу "Лучшее время"
+        // 2. Запись в "Лучшее время"
         if (avgBestPartsTime > 0) {
             await db.ref('leaderboard_best_time').child(currentUser.uid).set({
                 username: username,
-                // Используем то же поле bestTotalTime, чтобы таблица отображалась корректно
+                server: server, // Пишем сервер
                 bestTotalTime: avgBestPartsTime, 
                 timestamp: Date.now()
             });
         }
-        // --- ИЗМЕНЕНИЕ КОНЕЦ ---
 
-        // Остальные таблицы (среднее время сессий и кол-во деталей) оставляем как есть
+        // 3. Запись в "Среднее время"
         if (userStats.averageTotalTime > 0) {
             await db.ref('leaderboard_avg_time').child(currentUser.uid).set({
                 username: username,
+                server: server, // Пишем сервер
                 averageTotalTime: userStats.averageTotalTime,
                 timestamp: Date.now()
             });
         }
 
+        // 4. Запись в "Количество деталей"
         if (userStats.totalPartsCaught > 0) {
             await db.ref('leaderboard_parts_count').child(currentUser.uid).set({
                 username: username,
+                server: server, // Пишем сервер
                 totalPartsCaught: userStats.totalPartsCaught,
                 timestamp: Date.now()
             });
@@ -371,13 +373,13 @@ async function updateLeaderboards() {
         }
     }
 
-   function loadLeaderboard() {
+    function loadLeaderboard() {
         loadBestTimeLeaderboard();
         loadAvgTimeLeaderboard();
         loadPartsCountLeaderboard();
     }
 
-async function loadBestTimeLeaderboard() {
+    async function loadBestTimeLeaderboard() {
         const container = document.querySelector('.leaderboard-category.best-time .leaderboard-table-container');
         if (!container) return;
         try {
@@ -390,7 +392,7 @@ async function loadBestTimeLeaderboard() {
         }
     }
 
-  async function loadAvgTimeLeaderboard() {
+    async function loadAvgTimeLeaderboard() {
         const container = document.querySelector('.leaderboard-category.avg-time .leaderboard-table-container');
         if (!container) return;
         try {
@@ -403,7 +405,7 @@ async function loadBestTimeLeaderboard() {
         }
     }
 
-async function loadPartsCountLeaderboard() {
+    async function loadPartsCountLeaderboard() {
         const container = document.querySelector('.leaderboard-category.parts-count .leaderboard-table-container');
         if (!container) return;
         try {
@@ -416,33 +418,23 @@ async function loadPartsCountLeaderboard() {
         }
     }
 
-   // --- НОВАЯ ФУНКЦИЯ ОТОБРАЖЕНИЯ С ЛОГИКОЙ СТРЕЛОК ---
-
-   // ==========================================
-    // НОВАЯ ФУНКЦИЯ ОТОБРАЖЕНИЯ (ВСЁ В ОДНОМ)
-    // ==========================================
-
     // Глобальная переменная для хранения истории сессии
-    // Используем window, чтобы она была доступна везде и не вызывала ошибок
     window.sessionStartPositions = window.sessionStartPositions || {};
 
     function displayLeaderboard(snapshot, container, field, unit, ascending = true) {
-        // 1. ПРОВЕРКА И ЗАГРУЗКА ИСТОРИИ (Самостоятельная)
-        // Если мы еще не загружали историю для этой категории в этой сессии — загружаем сейчас
+        // 1. ЗАГРУЗКА ИСТОРИИ (Стрелочки)
         if (!window.sessionStartPositions[field]) {
             try {
                 const storageKey = 'lb_pos_' + field;
                 const savedData = localStorage.getItem(storageKey);
                 window.sessionStartPositions[field] = savedData ? JSON.parse(savedData) : {};
             } catch (e) {
-                console.warn("Сброс истории из-за ошибки чтения:", e);
                 window.sessionStartPositions[field] = {};
             }
         }
 
         const scores = [];
         snapshot.forEach((childSnapshot) => {
-            // Защита от пустых данных
             const val = childSnapshot.val();
             if (val) {
                 scores.push({ ...val, uid: childSnapshot.key });
@@ -465,8 +457,8 @@ async function loadPartsCountLeaderboard() {
         }
 
         // 4. ПОДГОТОВКА ДАННЫХ
-        const lastPositions = window.sessionStartPositions[field]; // Берем загруженную историю
-        let newPositionsForStorage = {}; // Сюда запишем новые места для следующего раза
+        const lastPositions = window.sessionStartPositions[field]; 
+        let newPositionsForStorage = {}; 
 
         let leaderboardHTML = '';
         
@@ -474,54 +466,51 @@ async function loadPartsCountLeaderboard() {
             const currentRank = index + 1;
             const uid = score.uid;
             
-            // Запоминаем текущее место (для будущего сохранения)
             newPositionsForStorage[uid] = currentRank;
 
             // --- ЛОГИКА СТРЕЛОК ---
             let changeHtml = '<span class="position-change" style="opacity:0.3">-</span>';
             
-            // Если этот игрок был в сохраненной истории
             if (lastPositions && lastPositions[uid]) {
                 const oldRank = lastPositions[uid];
                 const diff = oldRank - currentRank; 
 
                 if (diff > 0) {
-                    // Поднялся (Зеленая стрелка)
                     changeHtml = `<span class="position-change positive">↑ ${diff}</span>`;
                 } else if (diff < 0) {
-                    // Опустился (Красная стрелка)
                     changeHtml = `<span class="position-change negative">↓ ${Math.abs(diff)}</span>`;
                 } else {
-                    // На месте
                     changeHtml = `<span class="position-change" style="opacity:0.3">=</span>`;
                 }
             } else {
-                // Если игрока раньше не было в топе
                 changeHtml = `<span class="position-change new-entry">NEW</span>`;
             }
-            // ---------------------
+
+            // --- ОТОБРАЖЕНИЕ НИКА И СЕРВЕРА (НОВОЕ) ---
+            let displayName = score.username || 'Неизвестный';
+            if (score.server) {
+                displayName = `[${score.server}] ${displayName}`;
+            }
+            // ------------------------------------------
 
             const isCurrentUser = currentUser && uid === currentUser.uid;
-            // Стиль для текущего игрока (синяя подсветка)
             const userStyle = isCurrentUser ? 'style="background: rgba(42, 171, 238, 0.1); border-left: 3px solid #2AABEE;"' : '';
             const nameColor = isCurrentUser ? '#2AABEE' : 'white';
             
-            // Красивый вывод чисел
             let valueDisplay;
             if (field === 'totalPartsCaught') {
                 valueDisplay = score[field];
             } else {
-                // Проверка на число перед toFixed
                 valueDisplay = (Number(score[field]) || 0).toFixed(3);
             }
 
-            // Форматирование даты
             const dateStr = score.timestamp ? new Date(score.timestamp).toLocaleDateString() : '-';
 
+            // --- ИЗМЕНЕНИЕ: Добавляем onclick для открытия статистики ---
             leaderboardHTML += `
-                <div class="leaderboard-row" ${userStyle}>
+                <div class="leaderboard-row" ${userStyle} onclick="openPlayerStatsModal('${uid}', '${displayName.replace(/'/g, "\\'")}')">
                     <div style="font-weight:bold; color:#666;">${currentRank}</div>
-                    <div style="color: ${nameColor}; font-weight:600;">${score.username || 'Неизвестный'}</div>
+                    <div style="color: ${nameColor}; font-weight:600;">${displayName}</div>
                     <div style="font-family:monospace;">${valueDisplay}</div>
                     <div style="color:#888; font-size:12px;">${unit}</div>
                     <div style="color:#666; font-size:11px;">${dateStr}</div>
@@ -530,29 +519,33 @@ async function loadPartsCountLeaderboard() {
             `;
         });
 
-        // 5. СОХРАНЕНИЕ В ПАМЯТЬ БРАУЗЕРА (ДЛЯ СЛЕДУЮЩЕЙ ПЕРЕЗАГРУЗКИ)
+        // 5. СОХРАНЕНИЕ
         try {
             const storageKey = 'lb_pos_' + field; 
             localStorage.setItem(storageKey, JSON.stringify(newPositionsForStorage));
-        } catch (e) {
-            console.error("Ошибка сохранения в LocalStorage:", e);
-        }
+        } catch (e) { console.error(e); }
 
         container.innerHTML = leaderboardHTML;
     }
-    function updateUserInterface() {
-        const userPanel = document.querySelector('.leaderboard-user-panel');
-        if (!userPanel && currentUser) {
-            createUserPanel();
-        } else if (userPanel && currentUser) {
-            updateUserPanel();
-        } else if (userPanel && !currentUser) {
-            userPanel.remove();
-        }
-        
-        addRegisterButtonToLeaderboard();
-    }
 
+function updateUserInterface() {
+        const leaderboardRow = document.getElementById('row-leaderboard');
+        if (!leaderboardRow) return;
+
+        // 1. Сначала принудительно удаляем ВСЕ старые кнопки и панели
+        const oldRegBtn = leaderboardRow.querySelector('.leaderboard-register-btn');
+        const oldUserPanel = leaderboardRow.querySelector('.leaderboard-user-panel');
+        
+        if (oldRegBtn) oldRegBtn.remove();
+        if (oldUserPanel) oldUserPanel.remove();
+
+        // 2. Теперь смотрим, вошел юзер или нет и рисуем нужное
+        if (currentUser) {
+            createUserPanel(); // Рисуем панель с ником и кнопкой Выйти
+        } else {
+            addRegisterButtonToLeaderboard(); // Рисуем кнопку Регистрации
+        }
+    }
     function createUserPanel() {
         const leaderboardRow = document.getElementById('row-leaderboard');
         if (!leaderboardRow) return;
@@ -577,7 +570,6 @@ async function loadPartsCountLeaderboard() {
         }
     }
 
-    // ИСПРАВЛЕННАЯ ФУНКЦИЯ ДОБАВЛЕНИЯ КНОПКИ РЕГИСТРАЦИИ
     function addRegisterButtonToLeaderboard() {
         const leaderboardRow = document.getElementById('row-leaderboard');
         if (!leaderboardRow) return;
@@ -587,7 +579,6 @@ async function loadPartsCountLeaderboard() {
 
         if (!currentUser) {
             const registerBtn = document.createElement('button');
-            // Используем класс из CSS вместо встроенных стилей
             registerBtn.className = 'leaderboard-register-btn'; 
             registerBtn.innerHTML = '📝 Зарегистрироваться';
             registerBtn.onclick = showAuthModal;
@@ -600,7 +591,10 @@ async function loadPartsCountLeaderboard() {
         const categories = document.querySelectorAll('.leaderboard-category');
 
         tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
+            tab.addEventListener('click', (e) => {
+                // Игнорируем табы внутри модального окна соревнований, они обрабатываются отдельно
+                if(tab.closest('#compModal')) return;
+
                 const category = tab.getAttribute('data-category');
                 
                 tabs.forEach(t => t.classList.remove('active'));
@@ -620,6 +614,10 @@ async function loadPartsCountLeaderboard() {
 
     function updateUserStatistics(totalSessionTime, partsCaught) {
         if (!currentUser || partsCaught === 0) return;
+
+        // ЭТА СТАТИСТИКА ТОЛЬКО ДЛЯ ОБЫЧНОГО РЕЖИМА
+        // Соревновательная статистика пишется отдельно
+        if(compGameActive) return;
 
         userStats.totalPartsCaught += partsCaught;
         
@@ -667,7 +665,8 @@ async function loadPartsCountLeaderboard() {
 
     function applySettings() {
         const appFrame = document.querySelector('.main-app-frame');
-        const settingsFrameContent = document.querySelector('.settings-content-framed');
+        
+        const allContentFrames = document.querySelectorAll('.settings-content-framed');
         const innerSettingsFrames = document.querySelectorAll('.info-frame.settings-frame');
 
         const keyDisplay = document.getElementById('currentKeyDisplay');
@@ -679,22 +678,30 @@ async function loadPartsCountLeaderboard() {
             }
         }
 
+        // 1. Сначала сбрасываем стили фона самого приложения
         if (appFrame) {
             appFrame.classList.remove('custom-bg-darkened');
             appFrame.style.backgroundImage = '';
             appFrame.style.backgroundColor = '';
         }
         
-        if (settingsFrameContent) settingsFrameContent.classList.remove('adaptive-glass', 'adaptive-black');
-        innerSettingsFrames.forEach(frame => frame.classList.remove('adaptive-glass', 'adaptive-black'));
+        // 2. ПРИНУДИТЕЛЬНО СТАВИМ ТЕМНЫЙ СТИЛЬ ДЛЯ ОКОН (Настройки и Вход)
+        allContentFrames.forEach(frame => {
+            frame.classList.remove('adaptive-glass');
+            frame.classList.add('adaptive-black'); // Всегда темный
+        });
+        
+        innerSettingsFrames.forEach(frame => {
+            frame.classList.remove('adaptive-glass');
+            frame.classList.add('adaptive-black'); // Всегда темный
+        });
 
+        // 3. Применяем фон к главному экрану
         if (userSettings.backgroundMode === 'black') {
             if (appFrame) {
                 appFrame.style.backgroundImage = 'none';
                 appFrame.style.backgroundColor = '#111';
             }
-            if (settingsFrameContent) settingsFrameContent.classList.add('adaptive-black');
-            innerSettingsFrames.forEach(frame => frame.classList.add('adaptive-black'));
         } else if (userSettings.backgroundMode === 'default') {
             if (appFrame) appFrame.style.backgroundImage = 'url(background.png)';
         } else if (userSettings.backgroundMode === 'custom' && userSettings.customBgData) {
@@ -702,8 +709,6 @@ async function loadPartsCountLeaderboard() {
                 appFrame.style.backgroundImage = `url(${userSettings.customBgData})`;
                 appFrame.classList.add('custom-bg-darkened');
             }
-            if (settingsFrameContent) settingsFrameContent.classList.add('adaptive-glass');
-            innerSettingsFrames.forEach(frame => frame.classList.add('adaptive-glass'));
         }
 
         const bgSelect = document.getElementById('bgSelect');
@@ -727,12 +732,11 @@ async function loadPartsCountLeaderboard() {
     const bgSelect = document.getElementById('bgSelect');
     const bgFileInput = document.getElementById('bgFileInput');
 
-if (settingsBtn) {
+    if (settingsBtn) {
         settingsBtn.onclick = (e) => {
             e.preventDefault();
             if (settingsModal) settingsModal.style.display = 'block';
-            
-            loadProfile(); // <--- ДОБАВИТЬ ЭТУ СТРОКУ
+            loadProfile(); 
         };
     }
 
@@ -754,6 +758,7 @@ if (settingsBtn) {
     window.addEventListener('click', (event) => {
         if (event.target === settingsModal) closeSettings();
         if (event.target === authModal) closeAuthModal();
+        if (event.target === document.getElementById('compModal')) closeCompModal();
     });
 
     if (recordKeyBtn) {
@@ -828,7 +833,7 @@ if (settingsBtn) {
     }
 
     // ==========================================
-    // ОСНОВНАЯ ЛОГИКА ИГРЫ (ПОЛНЫЙ ФУНКЦИОНАЛ)
+    // ОСНОВНАЯ ЛОГИКА ИГРЫ
     // ==========================================
 
     const buttons = [
@@ -901,7 +906,6 @@ if (settingsBtn) {
 
     // Инициализация (сначала ставим нули)
     function initStats() {
-        // Убираем загрузку из localStorage!
         partStats = getDefaultStats();
         updateInfoDisplay();
     }
@@ -912,14 +916,11 @@ if (settingsBtn) {
         try {
             const snapshot = await db.ref('users').child(currentUser.uid).child('part_stats').once('value');
             if (snapshot.exists()) {
-                // Если в базе есть данные - берем их
                 partStats = snapshot.val();
             } else {
-                // Если данных нет (новый игрок) - создаем нули
                 partStats = getDefaultStats();
             }
-            updateInfoDisplay(); // Обновляем экран
-            console.log("Статистика деталей загружена");
+            updateInfoDisplay(); 
         } catch (error) {
             console.error("Ошибка загрузки статистики деталей:", error);
         }
@@ -928,15 +929,13 @@ if (settingsBtn) {
     // Сохранение статистики деталей в Firebase
     async function saveUserPartStats() {
         if (!currentUser) return;
+        // В режиме соревнований статистику деталей НЕ обновляем
+        if(compGameActive) return;
         try {
             await db.ref('users').child(currentUser.uid).child('part_stats').set(partStats);
         } catch (error) {
             console.error("Ошибка сохранения статистики деталей:", error);
         }
-    }
-
-    function saveStats() {
-        localStorage.setItem('partStats', JSON.stringify(partStats));
     }
 
     function updateInfoDisplay() {
@@ -971,6 +970,8 @@ if (settingsBtn) {
     }
 
     function updatePartStats(partName, catchTime) {
+        if(compGameActive) return; // Не обновляем стату в соревновании
+
         if (!partStats[partName]) {
             partStats[partName] = { fastestTime: 0, averageTime: 0, totalCount: 0, lastTime: 0 };
         }
@@ -978,12 +979,11 @@ if (settingsBtn) {
         const stats = partStats[partName];
         const previousAverage = stats.averageTime;
         
-        let isNewRecord = false; // Флаг: побит ли рекорд
+        let isNewRecord = false;
 
-        // Логика обновления лучшего времени ДЕТАЛИ
         if (stats.fastestTime === 0 || catchTime < stats.fastestTime) {
             stats.fastestTime = catchTime;
-            isNewRecord = true; // Запоминаем, что это новый рекорд
+            isNewRecord = true; 
         }
 
         stats.totalCount++;
@@ -991,25 +991,20 @@ if (settingsBtn) {
         stats.averageTime = ((stats.averageTime * (stats.totalCount - 1)) + catchTime) / stats.totalCount;
         
         if (currentUser) {
-            saveUserPartStats(); // Сохраняем личную статистику
-            
-            // ВАЖНО: Если мы поставили новый рекорд на детали,
-            // среднее арифметическое рекордов изменилось -> обновляем лидерборд немедленно
+            saveUserPartStats(); 
             if (isNewRecord) {
                 updateLeaderboards();
             }
-        } else {
-            console.log("Игрок не авторизован, статистика не сохранена в облако");
         }
         
         updateInfoDisplay();
     }
+
     function startCatchTimer() {
         if (!isTimerRunning) {
             catchStartTime = Date.now();
             isTimerRunning = true;
             individualCatchTimes = {}; 
-            console.log("Таймер запущен");
         }
     }
 
@@ -1018,7 +1013,6 @@ if (settingsBtn) {
             currentCatchTime = (Date.now() - catchStartTime) / 1000;
             isTimerRunning = false;
             catchStartTime = 0;
-            console.log("Таймер остановлен, время: " + currentCatchTime.toFixed(3) + " сек");
             return currentCatchTime;
         }
         return 0;
@@ -1240,7 +1234,6 @@ if (settingsBtn) {
                 itemCount++;
                 updateCounter();
                 updateCartDisplay();
-                console.log(`Добавлено в корзину: ${partName}, время: ${currentTime.toFixed(3)} сек`);
             }
         }
     }
@@ -1347,7 +1340,22 @@ if (settingsBtn) {
         
         cartItems.forEach(item => removePartFromAvailability(item.name, item.tier));
         
-        alert(`Покупка оформлена! Поймано деталей: ${cartItems.length}, Время: ${totalSessionTime.toFixed(2)} сек`);
+        // --- ИЗМЕНЕННАЯ ЛОГИКА УВЕДОМЛЕНИЙ ДЛЯ СОРЕВНОВАНИЙ ---
+        if(!compGameActive) {
+            alert(`Покупка оформлена! Поймано деталей: ${cartItems.length}, Время: ${totalSessionTime.toFixed(2)} сек`);
+        } else {
+            // 1. Показываем красивое уведомление (нужен HTML/CSS из предыдущего ответа)
+            const notif = document.getElementById('compBuyNotification');
+            const details = document.getElementById('compBuyDetails');
+            if(notif && details) {
+                details.textContent = `${cartItems.length} дет. за ${totalSessionTime.toFixed(2)} сек`;
+                notif.classList.add('show');
+                setTimeout(() => notif.classList.remove('show'), 1500);
+            }
+
+            // 2. Завершаем раунд локально и отправляем на сервер
+            finishLocalRound(totalSessionTime, cartItems.length);
+        }
         
         cartItems = [];
         itemCount = 0;
@@ -1423,7 +1431,6 @@ if (settingsBtn) {
         const rect = frame.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
-        // Эмуляция движения мыши для визуального эффекта (если поддерживается)
         document.elementFromPoint(centerX, centerY).dispatchEvent(new MouseEvent('mousemove', { clientX: centerX, clientY: centerY, bubbles: true }));
         return { x: centerX, y: centerY };
     }
@@ -1463,7 +1470,7 @@ if (settingsBtn) {
             clearTimeout(sessionTimeout);
             sessionTimeout = null;
         }
-        alert('Сессия прервана системой защиты');
+        if (!compGameActive) alert('Сессия прервана системой защиты');
     }
 
     function spawnRandomPartsInSections() {
@@ -1559,6 +1566,8 @@ if (settingsBtn) {
     }
 
     function activateCatchingMode() {
+        if (compGameActive) return; // В соревновании ловля автоматическая
+
         const hasUnpurchasedParts = spawnedParts.length > 0;
         if (hasUnpurchasedParts) {
             alert('Сначала купите все текущие детали!');
@@ -1572,85 +1581,69 @@ if (settingsBtn) {
         if (success) canSpawnNewParts = false;
     }
 
-    /* ЗАМЕНИТЬ ФУНКЦИЮ handleGlobalKeydown В script.js НА ЭТУ */
-
-function handleGlobalKeydown(event) {
-    // ==========================================
-    // ФИКС БАГА: ПОЛНАЯ БЛОКИРОВКА ПРИ ВВОДЕ
-    // ==========================================
-    
-    // 1. Проверяем, где стоит курсор (активный элемент)
-    const activeEl = document.activeElement;
-    const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
-
-    // 2. Проверяем, открыты ли модальные окна (Регистрация, Настройки, Корзина)
-    const authModal = document.getElementById('auth-modal');
-    const settingsModal = document.getElementById('settingsModal');
-    const cartModal = document.getElementById('cartModal');
-    
-    // Функция проверки видимости (работает даже если display задан через CSS класс)
-    const isVisible = (el) => el && (el.style.display === 'block' || getComputedStyle(el).display === 'block');
-    
-    const isAnyModalOpen = isVisible(authModal) || isVisible(settingsModal) || isVisible(cartModal);
-
-    // ГЛАВНОЕ УСЛОВИЕ: Если мы печатаем ИЛИ открыто любое окно -> СТОП
-    if (isTyping || isAnyModalOpen) {
+    function handleGlobalKeydown(event) {
         
-        // Удобство: Нажатие Enter в окне входа нажимает кнопку "Войти"
-        if (isVisible(authModal) && event.key === 'Enter') {
+        const activeEl = document.activeElement;
+        const isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA');
+
+        const authModal = document.getElementById('auth-modal');
+        const settingsModal = document.getElementById('settingsModal');
+        const cartModal = document.getElementById('cartModal');
+        const playerStatsModal = document.getElementById('player-stats-modal');
+        const compModal = document.getElementById('compModal'); // + Comp Modal
+        
+        const isVisible = (el) => el && (el.style.display === 'block' || getComputedStyle(el).display === 'block');
+        
+        const isAnyModalOpen = isVisible(authModal) || isVisible(settingsModal) || isVisible(cartModal) || isVisible(playerStatsModal) || isVisible(compModal);
+
+        if (isTyping || isAnyModalOpen) {
+            if (isVisible(authModal) && event.key === 'Enter') {
+                event.preventDefault();
+                if (typeof window.handleAuthAction === 'function') {
+                    window.handleAuthAction(); 
+                }
+            }
+            return; 
+        }
+
+        trackUserActivity();
+
+        if (event.key.toLowerCase() === userSettings.catchKey.toLowerCase()) {
             event.preventDefault();
-            // Проверка, чтобы не вызывать ошибку, если функции нет
-            if (typeof window.handleAuthAction === 'function') {
-                window.handleAuthAction(); 
+            activateCatchingMode();
+            return;
+        }
+
+        const activeCategory = document.querySelector('.category-btn.active');
+        if (activeCategory && activeCategory.textContent === 'Информация') {
+            switch(event.key) {
+                case 'ArrowDown': case 'PageDown': event.preventDefault(); scrollInfoList('down'); break;
+                case 'ArrowUp': case 'PageUp': event.preventDefault(); scrollInfoList('up'); break;
+                case 'Home': event.preventDefault(); const l1 = document.querySelector('.info-vertical-list'); if (l1) l1.scrollTop = 0; break;
+                case 'End': event.preventDefault(); const l2 = document.querySelector('.info-vertical-list'); if (l2) l2.scrollTop = l2.scrollHeight; break;
+            }
+        } else {
+            switch(event.key) {
+                case 'ArrowLeft': event.preventDefault(); prevSlot(); break;
+                case 'ArrowRight': event.preventDefault(); nextSlot(); break;
+                case 'End': event.preventDefault(); goToLastSlot(); break;
+                case 'Home': event.preventDefault(); goToFirstSlot(); break;
+                case 'Enter':
+                    event.preventDefault();
+                    if (isCatchingMode) {
+                        enterPressCount++;
+                        if (enterPressCount >= MAX_ENTER_PRESSES) {
+                            console.warn('AHK DETECTED: Limit reached. Resetting session.');
+                            abortCatchingSession(); 
+                            return; 
+                        }
+                    }
+                    const selectedSlot = currentRow.querySelector('.part-slot.selected');
+                    if (selectedSlot) handleSlotAction(selectedSlot);
+                    break;
             }
         }
-        
-        // ПРЕРЫВАЕМ ФУНКЦИЮ. Код игры ниже НЕ выполнится.
-        return; 
     }
-    // ==========================================
-
-    // ДАЛЬШЕ ИДЕТ ОБЫЧНЫЙ КОД ИГРЫ
-    trackUserActivity();
-
-    // Проверка клавиши ловли (h или другая)
-    if (event.key.toLowerCase() === userSettings.catchKey.toLowerCase()) {
-        event.preventDefault();
-        activateCatchingMode();
-        return;
-    }
-
-    // Навигация
-    const activeCategory = document.querySelector('.category-btn.active');
-    if (activeCategory && activeCategory.textContent === 'Информация') {
-        switch(event.key) {
-            case 'ArrowDown': case 'PageDown': event.preventDefault(); scrollInfoList('down'); break;
-            case 'ArrowUp': case 'PageUp': event.preventDefault(); scrollInfoList('up'); break;
-            case 'Home': event.preventDefault(); const l1 = document.querySelector('.info-vertical-list'); if (l1) l1.scrollTop = 0; break;
-            case 'End': event.preventDefault(); const l2 = document.querySelector('.info-vertical-list'); if (l2) l2.scrollTop = l2.scrollHeight; break;
-        }
-    } else {
-        switch(event.key) {
-            case 'ArrowLeft': event.preventDefault(); prevSlot(); break;
-            case 'ArrowRight': event.preventDefault(); nextSlot(); break;
-            case 'End': event.preventDefault(); goToLastSlot(); break;
-            case 'Home': event.preventDefault(); goToFirstSlot(); break;
-            case 'Enter':
-                event.preventDefault();
-                if (isCatchingMode) {
-                    enterPressCount++;
-                    if (enterPressCount >= MAX_ENTER_PRESSES) {
-                        console.warn('AHK DETECTED: Limit reached. Resetting session.');
-                        abortCatchingSession(); 
-                        return; 
-                    }
-                }
-                const selectedSlot = currentRow.querySelector('.part-slot.selected');
-                if (selectedSlot) handleSlotAction(selectedSlot);
-                break;
-        }
-    }
-}
     const enterButton = document.querySelector('.enter-button');
     if (enterButton) {
         enterButton.addEventListener('click', () => {
@@ -1675,7 +1668,6 @@ function handleGlobalKeydown(event) {
 
     window.addEventListener('click', (event) => { if (event.target === cartModal) closeCart(); });
 
-    // Инициализация слотов
     const allSlots = document.querySelectorAll('.part-slot');
     allSlots.forEach(slot => {
         slot.addEventListener('click', handlePartClick);
@@ -1710,5 +1702,874 @@ function handleGlobalKeydown(event) {
 
     scaleApp();
     window.addEventListener('resize', scaleApp);
+
+    // ==========================================
+    // ЛОГИКА СМЕНЫ НИКА (ПРОФИЛЬ)
+    // ==========================================
+
+    async function loadProfile() {
+        const profileBlock = document.getElementById('profile-settings-block');
+        const nickInput = document.getElementById('profile-nick');
+        const serverInput = document.getElementById('profile-server');
+        const statusDiv = document.getElementById('profile-status');
+        
+        if (!currentUser) {
+            if(profileBlock) profileBlock.style.display = 'none';
+            return;
+        }
+        
+        if(profileBlock) profileBlock.style.display = 'flex'; 
+        
+        if(statusDiv) {
+            statusDiv.textContent = ''; 
+            statusDiv.style.display = 'none'; 
+        }
+
+        try {
+            const snapshot = await db.ref('users').child(currentUser.uid).once('value');
+            const data = snapshot.val() || {};
+            
+            if (nickInput) nickInput.value = data.username || '';
+            if (serverInput) serverInput.value = data.server || ''; 
+        } catch (e) {
+            console.error("Ошибка загрузки профиля", e);
+        }
+    }
+
+    async function saveProfile() {
+        if (!currentUser) return;
+
+        const nickInput = document.getElementById('profile-nick');
+        const serverInput = document.getElementById('profile-server');
+        const statusDiv = document.getElementById('profile-status');
+        
+        const newName = nickInput.value.trim();
+        let newServer = serverInput.value.trim(); 
+
+        if (statusDiv) statusDiv.style.display = 'block';
+
+        statusDiv.style.color = '#888';
+        statusDiv.textContent = 'Проверка...';
+
+        if (newName.length < 3) {
+            statusDiv.style.color = '#ff453a';
+            statusDiv.textContent = 'Ник: минимум 3 символа!';
+            return;
+        }
+
+        if (newServer) {
+            newServer = parseInt(newServer);
+            if (isNaN(newServer) || newServer < 1 || newServer > 30) {
+                statusDiv.style.color = '#ff453a';
+                statusDiv.textContent = 'Сервер должен быть от 1 до 30!';
+                return;
+            }
+        } else {
+            newServer = null; 
+        }
+
+        try {
+            const userSnap = await db.ref('users').child(currentUser.uid).once('value');
+            const userData = userSnap.val() || {};
+            const oldName = userData.username;
+
+            if (oldName !== newName) {
+                const lookupSnap = await db.ref('username_lookup').child(newName).once('value');
+                if (lookupSnap.exists()) {
+                    statusDiv.style.color = '#ff453a';
+                    statusDiv.textContent = 'Этот ник уже занят!';
+                    return;
+                }
+            }
+
+            const updates = {};
+            
+            if (oldName !== newName) {
+                if (oldName) updates[`username_lookup/${oldName}`] = null;
+                updates[`username_lookup/${newName}`] = currentUser.uid;
+                updates[`users/${currentUser.uid}/username`] = newName;
+            }
+
+            updates[`users/${currentUser.uid}/server`] = newServer;
+
+            await db.ref().update(updates);
+
+            statusDiv.style.color = '#32d74b'; 
+            statusDiv.textContent = 'Сохранено!';
+            
+            updateUserPanel();
+            
+            updateLeaderboards();
+
+        } catch (error) {
+            console.error(error);
+            statusDiv.style.color = '#ff453a';
+            statusDiv.textContent = 'Ошибка: ' + error.message;
+        }
+    }
+
+    window.loadProfile = loadProfile;
+    window.saveProfile = saveProfile;
+
+    // ==========================================
+    // СИСТЕМА ПРОСМОТРА СТАТИСТИКИ
+    // ==========================================
+
+    const PARTS_CONFIG = {
+        'Коленвал': 'images/kolenval-sport.png',
+        'Распредвал': 'images/raspredval-sport.png',
+        'Турбина': 'images/turbina-sport.png',
+        'Нагнетатель': 'images/nagnetatel-t2.png',
+        'Прошивка': 'images/proshivka-sport.png',
+        'Сцепление': 'images/sceplenie-sport.png',
+        'КПП': 'images/kpp-sport.png',
+        'Дифференциал': 'images/differencial-sport.png',
+        'Подвеска': 'images/podveska-sport.png',
+        'Тормоза': 'images/tormoza-sport.png'
+    };
+
+    window.openPlayerStatsModal = async function(targetUid, targetName) {
+        const modal = document.getElementById('player-stats-modal');
+        const title = document.getElementById('player-stats-title');
+        const container = document.getElementById('player-stats-container');
+        
+        if (!modal) return;
+
+        modal.style.display = 'block';
+        
+        title.textContent = targetName;
+        container.innerHTML = '<div style="padding: 40px; text-align: center; color: #888;">Загрузка данных...</div>';
+
+        try {
+            const snapshot = await db.ref('users').child(targetUid).child('part_stats').once('value');
+            
+            if (!snapshot.exists()) {
+                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #888;">Статистика отсутствует</div>';
+                return;
+            }
+
+            const statsData = snapshot.val();
+            let htmlContent = '';
+
+            for (const [partName, imgPath] of Object.entries(PARTS_CONFIG)) {
+                const stat = statsData[partName] || { fastestTime: 0, averageTime: 0, totalCount: 0 };
+                
+                const bestTime = stat.fastestTime > 0 ? stat.fastestTime.toFixed(3) + ' сек' : '-';
+                const avgTime = stat.averageTime > 0 ? stat.averageTime.toFixed(3) + ' сек' : '-';
+
+                htmlContent += `
+                <div class="info-item">
+                    <div class="info-frame settings-frame" style="background: rgba(255, 255, 255, 0.04) !important; display: flex; align-items: center; padding: 10px;">
+                        
+                        <div style="width: 70px; height: 50px; flex-shrink: 0; margin-right: 15px;">
+                            <img src="${imgPath}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
+                        </div>
+
+                        <div style="flex: 1;">
+                            <div style="color: white; font-weight: bold; font-size: 15px; margin-bottom: 4px;">${partName}</div>
+                            
+                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #ccc;">
+                                <span>Лучшее: <span style="color: #4CAF50;">${bestTime}</span></span>
+                                <span>Среднее: <span style="color: white;">${avgTime}</span></span>
+                                <span>Всего: <span style="color: #2AABEE;">${stat.totalCount}</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+
+            container.innerHTML = htmlContent;
+
+        } catch (error) {
+            console.error(error);
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #ff453a;">Ошибка загрузки</div>';
+        }
+    };
+
+    window.closePlayerStatsModal = function() {
+        const modal = document.getElementById('player-stats-modal');
+        if (modal) modal.style.display = 'none';
+    };
+
+    window.addEventListener('click', (event) => {
+        const pModal = document.getElementById('player-stats-modal');
+        if (event.target === pModal) closePlayerStatsModal();
+    });
+
+    function showFullscreenNotification() {
+        const notification = document.getElementById('fullscreenNotification');
+        if (notification) {
+            notification.classList.add('show');
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+    }
+    
+    setTimeout(showFullscreenNotification, 1000);
+
+// ==========================================
+    // СОРЕВНОВАТЕЛЬНЫЙ РЕЖИМ (ИСПРАВЛЕННЫЙ)
+    // ==========================================
+
+    let currentRoomId = null;
+    let compGameActive = false;
+    let compRound = 0;
+    let isMyReady = false; 
+
+    // --- UI Функции ---
+
+    window.openCompModal = function() {
+        const m = document.getElementById('compModal');
+        if(m) {
+            m.style.display = 'block';
+            switchCompTab('rooms');
+        }
+    };
+    
+    window.closeCompModal = function() {
+        const m = document.getElementById('compModal');
+        if(m) m.style.display = 'none';
+        closeCreateOverlay();
+    };
+
+    window.switchCompTab = function(tabName) {
+        document.getElementById('comp-tab-rooms').style.display = tabName === 'rooms' ? 'flex' : 'none'; 
+        document.getElementById('comp-tab-top').style.display = tabName === 'top' ? 'block' : 'none';
+        
+        const tabs = document.querySelectorAll('.leaderboard-tabs .leaderboard-tab'); 
+        tabs.forEach(t => t.classList.remove('active'));
+        
+        if(tabName === 'rooms') {
+            tabs[2].classList.add('active'); 
+            if (currentRoomId) {
+                document.getElementById('currentRoomPanel').style.display = 'flex';
+                document.getElementById('roomsBrowserPanel').style.display = 'none';
+            } else {
+                document.getElementById('currentRoomPanel').style.display = 'none';
+                document.getElementById('roomsBrowserPanel').style.display = 'flex';
+                subscribeToRooms();
+            }
+        }
+        if(tabName === 'top') {
+            tabs[3].classList.add('active');
+            loadCompLeaderboard();
+        }
+    };
+
+    // --- Логика Создания и Входа ---
+
+    window.openCreateOverlay = function() {
+        if(!currentUser) { alert('Войдите в аккаунт!'); return; }
+        if(currentRoomId) { alert('Вы уже в комнате'); return; }
+        document.getElementById('createRoomOverlay').style.display = 'flex';
+    }
+
+    window.closeCreateOverlay = function() {
+        const overlay = document.getElementById('createRoomOverlay');
+        if(overlay) overlay.style.display = 'none';
+    }
+
+    window.confirmCreateRoom = async function() {
+    const size = document.getElementById('newRoomSize').value;
+    const privacy = document.getElementById('newRoomPrivacy').value; 
+    
+    // Считываем новые настройки
+    let rounds = parseInt(document.getElementById('newRoomRounds').value);
+    let delay = parseInt(document.getElementById('newRoomDelay').value);
+
+    // Ставим дефолтные значения, если поля пустые
+    if(isNaN(rounds) || rounds < 1) rounds = 10;
+    if(isNaN(delay) || delay < 1) delay = 3;
+    
+    const roomRef = db.ref('rooms').push();
+    currentRoomId = roomRef.key;
+    
+    const username = await getUsername(currentUser.uid);
+    
+    await roomRef.set({
+        host: currentUser.uid,
+        hostName: username,
+        status: 'waiting',
+        currentRound: 0,
+        activeParts: null, 
+        settings: {
+            maxPlayers: parseInt(size),
+            isPrivate: privacy === 'private',
+            totalRounds: rounds,        // Сохраняем кол-во раундов
+            roundDelay: delay * 1000    // Сохраняем КД (в миллисекундах)
+        },
+        players: {
+            [currentUser.uid]: { name: username, ready: false, score: 0, totalTime: 0 } 
+        },
+        created: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    closeCreateOverlay();
+    document.getElementById('roomsBrowserPanel').style.display = 'none';
+    document.getElementById('currentRoomPanel').style.display = 'flex';
+    
+    subscribeToMyRoom();
+};
+
+    window.leaveRoom = async function() {
+        if(!currentRoomId || !currentUser) return;
+        
+        await db.ref(`rooms/${currentRoomId}/players/${currentUser.uid}`).remove();
+        
+        const snap = await db.ref(`rooms/${currentRoomId}`).once('value');
+        if(snap.exists()) {
+             const val = snap.val();
+             if(!val.players || Object.keys(val.players).length === 0) {
+                 await db.ref(`rooms/${currentRoomId}`).remove();
+             } else if(val.host === currentUser.uid) {
+                 await db.ref(`rooms/${currentRoomId}`).remove();
+             }
+        }
+
+        resetCompState();
+        
+        document.getElementById('currentRoomPanel').style.display = 'none';
+        document.getElementById('roomsBrowserPanel').style.display = 'flex';
+        
+        subscribeToRooms(); 
+    };
+
+    function resetCompState() {
+        currentRoomId = null;
+        isMyReady = false;
+        compGameActive = false;
+        compRound = 0;
+        unsubscribeFromMyRoom();
+        
+        clearSpawnedParts();
+        abortCatchingSession();
+    }
+
+    window.joinRoom = async function(roomId) {
+        if(!currentUser) { showAuthModal(); return; }
+        if(currentRoomId) { alert('Сначала выйдите из текущей комнаты'); return; }
+
+        const roomRef = db.ref(`rooms/${roomId}`);
+        const snap = await roomRef.once('value');
+        if(!snap.exists()) { alert('Комната удалена'); return; }
+        
+        const data = snap.val();
+        if(data.status !== 'waiting') { alert('Игра уже идет'); return; }
+        
+        const currentCount = Object.keys(data.players || {}).length;
+        const maxPlayers = data.settings ? data.settings.maxPlayers : 3;
+
+        if(currentCount >= maxPlayers) { alert('Комната полна'); return; }
+
+        const username = await getUsername(currentUser.uid);
+        currentRoomId = roomId;
+
+        await roomRef.child('players').child(currentUser.uid).set({
+            name: username,
+            ready: false, 
+            score: 0,
+            totalTime: 0
+        });
+
+        document.getElementById('roomsBrowserPanel').style.display = 'none';
+        document.getElementById('currentRoomPanel').style.display = 'flex';
+
+        subscribeToMyRoom();
+        window.switchCompTab('rooms'); 
+    };
+
+    window.copyRoomLink = function() {
+        if(currentRoomId) {
+            const fullUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoomId}`;
+            navigator.clipboard.writeText(fullUrl).then(() => {
+                alert('Ссылка скопирована!');
+            });
+        }
+    }
+
+    function subscribeToRooms() {
+        const list = document.getElementById('roomsList');
+        if(!list) return;
+        db.ref('rooms').off();
+        db.ref('rooms').orderByChild('status').equalTo('waiting').limitToLast(20).on('value', (snapshot) => {
+            if(currentRoomId) return; 
+            list.innerHTML = '';
+            if(!snapshot.exists()) {
+                list.innerHTML = '<div class="leaderboard-empty">Нет активных комнат</div>';
+                return;
+            }
+            let hasPublicRooms = false;
+            snapshot.forEach(child => {
+                const room = child.val();
+                if(room.settings && room.settings.isPrivate) return;
+                hasPublicRooms = true;
+                const count = Object.keys(room.players || {}).length;
+                const max = room.settings ? room.settings.maxPlayers : 3;
+                
+                const div = document.createElement('div');
+                div.className = 'room-item';
+                div.innerHTML = `
+                    <div style="display:flex; flex-direction:column;">
+                        <span style="color:white; font-weight:bold;">Комната ${room.hostName}</span>
+                    </div>
+                    <div style="text-align:right;">
+                        <span style="color:#4CAF50; font-weight:bold;">${count} / ${max}</span>
+                    </div>
+                `;
+                div.onclick = () => joinRoom(child.key);
+                list.appendChild(div);
+            });
+            if(!hasPublicRooms) list.innerHTML = '<div class="leaderboard-empty">Нет открытых комнат</div>';
+        });
+    }
+
+    let roomListener = null;
+    
+    function subscribeToMyRoom() {
+        if(!currentRoomId) return;
+        const roomRef = db.ref(`rooms/${currentRoomId}`);
+        
+        roomListener = roomRef.on('value', (snap) => {
+            const data = snap.val();
+            if(!data) { leaveRoom(); return; }
+
+            const pList = document.getElementById('roomPlayersList');
+            document.getElementById('lobbyHostName').textContent = data.hostName;
+            pList.innerHTML = '';
+            
+            let allReady = true;
+            let playerCount = 0;
+            const amIHost = (data.host === currentUser.uid);
+
+            if(data.players) {
+                Object.values(data.players).forEach(p => {
+                    playerCount++;
+                    if(!p.ready) allReady = false;
+                    const readyStatus = p.ready ? '✅' : '❌';
+                    pList.innerHTML += `
+                        <div class="room-player-card">
+                            <div style="font-size:24px;">👤</div>
+                            <div style="font-weight:bold; color:white; font-size:13px;">${p.name}</div>
+                            <div>${readyStatus}</div>
+                            <div style="color:#FFD700; font-size:11px;">Счет: ${p.score || 0}</div>
+                        </div>
+                    `;
+                });
+            }
+
+            const startBtn = document.getElementById('startGameBtn');
+            const readyBtn = document.getElementById('readyBtn');
+            const waitingText = document.getElementById('waitingText');
+
+            const myData = data.players[currentUser.uid];
+            if(myData && myData.ready) {
+                readyBtn.textContent = 'НЕ ГОТОВ';
+                readyBtn.style.background = '#f44336';
+                isMyReady = true;
+            } else {
+                readyBtn.textContent = 'Я ГОТОВ';
+                readyBtn.style.background = '#333';
+                isMyReady = false;
+            }
+
+            if(data.status === 'waiting') {
+                if(amIHost) {
+                    if(allReady && playerCount >= 2) {
+                        startBtn.style.display = 'block';
+                        waitingText.style.display = 'none';
+                    } else {
+                        startBtn.style.display = 'none';
+                        waitingText.style.display = 'block';
+                        waitingText.textContent = "Ждем готовности...";
+                    }
+                } else {
+                    startBtn.style.display = 'none';
+                }
+            } else if (data.status === 'playing') {
+                readyBtn.style.display = 'none';
+                startBtn.style.display = 'none';
+                waitingText.style.display = 'none';
+                
+                if(data.currentRound !== compRound) {
+                    startCompRound(data.currentRound);
+                }
+                
+                syncActiveParts(data.activeParts);
+                
+                if(amIHost) {
+                    checkRoundEnd(data.activeParts, data.currentRound);
+                }
+
+            } else if (data.status === 'finished') {
+                showCompResults(data);
+            }
+        });
+    }
+
+    function unsubscribeFromMyRoom() {
+        if(currentRoomId && roomListener) {
+            db.ref(`rooms/${currentRoomId}`).off('value', roomListener);
+            roomListener = null;
+        }
+    }
+
+    window.toggleReady = function() {
+        if(!currentRoomId || !currentUser) return;
+        db.ref(`rooms/${currentRoomId}/players/${currentUser.uid}`).update({ ready: !isMyReady });
+    };
+
+    // --- ЛОГИКА ИГРЫ (REAL-TIME) ---
+
+    window.startCompGame = async function() {
+        if(!currentRoomId) return;
+        const roomRef = db.ref(`rooms/${currentRoomId}`);
+        const snap = await roomRef.once('value');
+        const players = snap.val().players;
+        const updates = {};
+        
+        Object.keys(players).forEach(uid => {
+            updates[`players/${uid}/score`] = 0;
+            updates[`players/${uid}/totalTime`] = 0;
+        });
+        
+        updates['status'] = 'playing';
+        updates['currentRound'] = 0;
+        
+        await roomRef.update(updates);
+        setTimeout(() => hostStartNextRound(1), 1000);
+    };
+
+    async function hostStartNextRound(roundNum) {
+    if (!currentRoomId) return;
+
+    // Читаем настройки из базы
+    const snap = await db.ref(`rooms/${currentRoomId}/settings`).once('value');
+    const settings = snap.val() || { totalRounds: 10 }; 
+    
+    // Проверка лимита раундов
+    if(roundNum > settings.totalRounds) {
+        db.ref(`rooms/${currentRoomId}`).update({ status: 'finished' });
+        return;
+    }
+    
+    // ... (код выбора деталей остается прежним) ...
+    const possibleParts = [
+        { name: 'Коленвал', tier: 'sport+' }, { name: 'Распредвал', tier: 'sport+' },
+        { name: 'Турбина', tier: 'sport+' }, { name: 'Нагнетатель', tier: 'sport+' },
+        { name: 'Сцепление', tier: 'sport+' }, { name: 'КПП', tier: 'sport+' },
+        { name: 'Дифференциал', tier: 'sport+' }, { name: 'Подвеска', tier: 'sport+' },
+        { name: 'Тормоза', tier: 'sport+' }, { name: 'Прошивка', tier: 'STAGE-3' }
+    ];
+    const shuffled = possibleParts.sort(() => 0.5 - Math.random()).slice(0, 2);
+    const partsPayload = { 'p0': shuffled[0], 'p1': shuffled[1] };
+
+    await db.ref(`rooms/${currentRoomId}`).update({
+        currentRound: roundNum,
+        activeParts: partsPayload
+    });
+}
+async function startCompRound(roundNum) {
+        compGameActive = true;
+        compRound = roundNum;
+        
+        closeCompModal();
+        closeSettings();
+        abortCatchingSession(); 
+
+        // === 1. ПЕРЕКЛЮЧЕНИЕ НА ДВИГАТЕЛЬ И КОЛЕНВАЛ (Сразу же) ===
+        // Кликаем на категорию "Двигатель" (первая кнопка)
+        const categories = document.querySelectorAll('.category-btn');
+        if (categories && categories.length > 0) {
+            categories[0].click(); 
+        }
+
+        // Через мгновение кликаем на "Коленвал" и центрируем
+        setTimeout(() => {
+            const partBtn1 = document.querySelector('.part-selector-button-1');
+            if (partBtn1) partBtn1.click(); 
+            
+            currentSlotIndex = 0;
+            highlightSelectedSlot();
+            // moveCursorToCenter(); // Можете раскомментировать, если нужно центрировать мышь
+        }, 50);
+
+        // === 2. ПОКАЗЫВАЕМ ТАЙМЕР (3..2..1) ===
+        const overlay = document.getElementById('compOverlay');
+        const title = document.getElementById('compOverlayTitle');
+        const timerDiv = document.getElementById('compOverlayTimer');
+        const msg = document.getElementById('compOverlayMessage');
+
+        overlay.style.display = 'flex';
+        title.textContent = `Раунд ${roundNum}`;
+        msg.textContent = ""; 
+
+        let countdown = 3;
+        while(countdown > 0) {
+            timerDiv.textContent = countdown;
+            await new Promise(r => setTimeout(r, 1000)); // Ждем 1 секунду
+            countdown--;
+        }
+        overlay.style.display = 'none';
+
+        // === 3. НАЧИНАЕМ ЛОВЛЮ (Только после таймера) ===
+        isCatchingMode = true; 
+        startCatchTimer(); // Запускаем секундомер
+    }
+
+    function syncActiveParts(activePartsData) {
+        clearSpawnedParts();
+        spawnedParts = [];
+
+        if (!activePartsData) {
+            if (isCatchingMode) isCatchingMode = false;
+            return; 
+        }
+
+        Object.keys(activePartsData).forEach(key => {
+            const partData = activePartsData[key];
+            const allSlots = document.querySelectorAll('.part-slot');
+            let foundSlot = null;
+
+            allSlots.forEach(slot => {
+                const sName = slot.querySelector('.part-name').textContent.trim();
+                const sTier = slot.querySelector('.tier-label').textContent.trim();
+                if(sName === partData.name && sTier === partData.tier) {
+                    foundSlot = slot;
+                }
+            });
+
+            if (foundSlot) {
+                foundSlot.dataset.dbKey = key; 
+                const partObj = {
+                    element: foundSlot,
+                    name: partData.name,
+                    tier: partData.tier,
+                    statusElement: foundSlot.querySelector('.part-status')
+                };
+                activatePart(partObj);
+                spawnedParts.push(partObj);
+            }
+        });
+    }
+
+    window.compBuyTransaction = function(items) {
+    if(!currentRoomId || !currentUser) return;
+    
+    items.forEach(item => {
+        db.ref(`rooms/${currentRoomId}/activeParts`).transaction((currentParts) => {
+            if (currentParts) {
+                const key = Object.keys(currentParts).find(k => 
+                    currentParts[k].name === item.name && currentParts[k].tier === item.tier
+                );
+                if (key) {
+                    delete currentParts[key];
+                    return currentParts;
+                }
+            }
+            return; 
+        }, (error, committed, snapshot) => {
+            if (committed) {
+                addCompScore(1);
+                // ЗДЕСЬ РАНЬШЕ БЫЛ showCompNotification - МЫ ЕГО УБРАЛИ
+                // Больше ничего не пишется на экране
+            }
+        });
+    });
+};
+    
+window.buyItems = function() {
+    if (cartItems.length === 0) {
+        alert('Корзина пуста!');
+        return;
+    }
+
+    // Рассчитываем время (общее для обоих режимов)
+    let totalSessionTime;
+    if (isTimerRunning) {
+        totalSessionTime = (Date.now() - catchStartTime) / 1000;
+    } else {
+        totalSessionTime = currentCatchTime;
+    }
+
+    // === ЛОГИКА СОРЕВНОВАТЕЛЬНОГО РЕЖИМА (ИСПОЛЬЗУЕМ ALERT) ===
+    if(compGameActive && currentRoomId) {
+        // Показываем стандартный браузерный ALERT для соревновательного режима
+        alert(`Покупка оформлена! Поймано: ${cartItems.length}\nВремя: ${totalSessionTime.toFixed(2)} с`);
+
+        // Отправляем на сервер
+        compBuyTransaction(cartItems);
+        
+        // Очищаем корзину и выходим
+        cartItems = [];
+        itemCount = 0;
+        updateCounter();
+        updateCartDisplay();
+        closeCart();
+        return; 
+    }
+    // ===============================================
+
+    // === ЛОГИКА ОСНОВНОЙ СИМУЛЯЦИИ (ИСПОЛЬЗУЕМ ТОЖЕ ALERT) ===
+    if (sessionTimeout) {
+        clearTimeout(sessionTimeout);
+        sessionTimeout = null;
+    }
+    const alreadySold = spawnedParts.filter(p => p.statusElement.textContent.trim() === 'Нет в продаже').length;
+    const totalSpawned = spawnedParts.length;
+    const buyingNow = cartItems.length;
+    const isSessionFinished = (alreadySold + buyingNow) >= totalSpawned;
+    if (isSessionFinished) totalSessionTime = stopCatchTimer();
+
+    if (currentUser) updateUserStatistics(totalSessionTime, cartItems.length);
+    cartItems.forEach(item => {
+         const catchTime = item.catchTime || totalSessionTime;
+         if (catchTime > 0) updatePartStats(item.name, catchTime);
+         removePartFromAvailability(item.name, item.tier);
+    });
+    
+    // Показываем стандартный браузерный ALERT для основной симуляции
+    alert(`Покупка оформлена! Поймано: ${cartItems.length}, Время: ${totalSessionTime.toFixed(2)} с`);
+    
+    cartItems = [];
+    itemCount = 0;
+    updateCounter();
+    updateCartDisplay();
+    closeCart();
+    checkIfAllPartsPurchased();
+}
+
+    function addCompScore(points) {
+        db.ref(`rooms/${currentRoomId}/players/${currentUser.uid}/score`).transaction(score => (score || 0) + points);
+    }
+    
+    function showCompNotification(text, color = 'green') {
+        const notif = document.createElement('div');
+        notif.textContent = text;
+        notif.style.position = 'absolute';
+        notif.style.top = '50%'; 
+        notif.style.left = '50%';
+        notif.style.transform = 'translate(-50%, -50%)';
+        notif.style.background = color === 'green' ? 'rgba(76, 175, 80, 0.9)' : 'rgba(244, 67, 54, 0.9)';
+        notif.style.color = 'white';
+        notif.style.padding = '10px 20px';
+        notif.style.borderRadius = '5px';
+        notif.style.zIndex = '5000';
+        notif.style.fontSize = '20px';
+        notif.style.fontWeight = 'bold';
+        notif.style.pointerEvents = 'none';
+        
+        document.body.appendChild(notif);
+        
+        let top = 50;
+        const interval = setInterval(() => {
+            top -= 1;
+            notif.style.top = top + '%';
+            notif.style.opacity = parseFloat(notif.style.opacity || 1) - 0.02;
+            if(top < 40) {
+                clearInterval(interval);
+                notif.remove();
+            }
+        }, 30);
+    }
+
+    function checkRoundEnd(activeParts, currentRound) {
+        if (!activeParts && compGameActive) {
+            if(!window.nextRoundTimeout) {
+                window.nextRoundTimeout = setTimeout(() => {
+                    hostStartNextRound(currentRound + 1);
+                    window.nextRoundTimeout = null;
+                }, 3000);
+            }
+        }
+    }
+
+   function showCompResults(data) {
+    compGameActive = false;
+    
+    const overlay = document.getElementById('compOverlay');
+    const title = document.getElementById('compOverlayTitle');
+    const timerDiv = document.getElementById('compOverlayTimer');
+    const msg = document.getElementById('compOverlayMessage');
+    
+    overlay.style.display = 'flex';
+    title.textContent = "ИТОГИ МАТЧА";
+    timerDiv.textContent = "🏆";
+    
+    let html = '<div style="margin-top:20px; text-align:left;">';
+    const players = Object.values(data.players || {}).sort((a,b) => b.score - a.score);
+    
+    players.forEach((p, i) => {
+        const medal = i===0?'🥇':(i===1?'🥈':'🥉');
+        html += `<div style="font-size:24px; margin-bottom:10px;">${medal} ${p.name}: <b style="color:#FFD700">${p.score}</b></div>`;
+    });
+    html += '</div>';
+    
+    // Кнопка вызывает новую функцию удаления
+    msg.innerHTML = html + '<br><button onclick="finishCompAndClose()" style="padding:10px 20px; font-size:16px; cursor:pointer; background: #333; color: white; border: 1px solid #555; border-radius: 5px;">Завершить и выйти</button>';
+}
+
+// НОВАЯ ФУНКЦИЯ: Удаляет комнату и сбрасывает интерфейс
+window.finishCompAndClose = async function() {
+    document.getElementById('compOverlay').style.display = 'none';
+    
+    if (currentRoomId) {
+        // Проверяем, хост ли я
+        const snap = await db.ref(`rooms/${currentRoomId}/host`).once('value');
+        const hostId = snap.val();
+        
+        // Если я хост — удаляю комнату полностью
+        if (hostId === currentUser.uid) {
+            await db.ref(`rooms/${currentRoomId}`).remove();
+        } else {
+            // Если не хост — просто удаляю себя из игроков
+            await db.ref(`rooms/${currentRoomId}/players/${currentUser.uid}`).remove();
+        }
+    }
+    
+    // Сброс локального состояния
+    resetCompState();
+    
+    // Возврат в меню лобби
+    openCompModal();
+    document.getElementById('currentRoomPanel').style.display = 'none';
+    document.getElementById('roomsBrowserPanel').style.display = 'flex';
+    subscribeToRooms();
+};
+
+    // ==========================================
+    // ФИКС КНОПКИ ПОКУПКИ (ОБЯЗАТЕЛЬНО)
+    // ==========================================
+    setTimeout(() => {
+        const oldBtn = document.querySelector('.buy-btn');
+        if (oldBtn) {
+            // Клонируем кнопку, чтобы убить старые обработчики событий (которые не работали с соревнованием)
+            const newBtn = oldBtn.cloneNode(true);
+            oldBtn.parentNode.replaceChild(newBtn, oldBtn);
+            
+            // Вешаем новую универсальную функцию
+            newBtn.addEventListener('click', window.buyItems);
+            console.log("Кнопка покупки обновлена для соревновательного режима");
+        }
+    }, 1000);
+
+    // --- ПРОВЕРКА ССЫЛКИ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ ---
+    setTimeout(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const roomParam = urlParams.get('room');
+        
+        if (roomParam) {
+            console.log("Обнаружена ссылка на комнату:", roomParam);
+            const authCheck = setInterval(() => {
+                if (currentUser) {
+                    clearInterval(authCheck);
+                    openCompModal();
+                    joinRoom(roomParam);
+                }
+            }, 1000);
+            setTimeout(() => clearInterval(authCheck), 20000);
+        }
+    }, 1500);
 
 });
