@@ -1923,6 +1923,13 @@ function abortCatchingSession(silent = false) {
     let compRound = 0;
     let isMyReady = false; 
 
+    // ==========================================
+// AFK СИСТЕМА ДЛЯ КОМНАТ СОРЕВНОВАНИЙ (ДОБАВИТЬ ЗДЕСЬ)
+// ==========================================
+
+let hostAFKCheckInterval = null;
+const HOST_AFK_TIMEOUT_MS = 5 * 60 * 1000; // 5 минут
+
     // --- UI Функции ---
 
     window.openCompModal = function() {
@@ -1933,11 +1940,16 @@ function abortCatchingSession(silent = false) {
         }
     };
     
-    window.closeCompModal = function() {
-        const m = document.getElementById('compModal');
-        if(m) m.style.display = 'none';
-        closeCreateOverlay();
-    };
+window.closeCompModal = function() {
+    const m = document.getElementById('compModal');
+    if(m) m.style.display = 'none';
+    closeCreateOverlay();
+    
+    // Если пользователь вышел из комнаты или не в комнате, останавливаем AFK проверку (ДОБАВИТЬ ЭТО)
+    if (!currentRoomId) {
+        stopHostAFKCheck();
+    }
+};
 
     window.switchCompTab = function(tabName) {
         document.getElementById('comp-tab-rooms').style.display = tabName === 'rooms' ? 'flex' : 'none'; 
@@ -1976,7 +1988,7 @@ function abortCatchingSession(silent = false) {
         if(overlay) overlay.style.display = 'none';
     }
 
-    window.confirmCreateRoom = async function() {
+window.confirmCreateRoom = async function() {
     const size = document.getElementById('newRoomSize').value;
     const privacy = document.getElementById('newRoomPrivacy').value; 
     
@@ -2008,7 +2020,8 @@ function abortCatchingSession(silent = false) {
         players: {
             [currentUser.uid]: { name: username, ready: false, score: 0, totalTime: 0 } 
         },
-        created: firebase.database.ServerValue.TIMESTAMP
+        created: firebase.database.ServerValue.TIMESTAMP,
+        lastHostActivity: Date.now() // ДОБАВИТЬ ЭТУ СТРОКУ
     });
 
     closeCreateOverlay();
@@ -2016,6 +2029,10 @@ function abortCatchingSession(silent = false) {
     document.getElementById('currentRoomPanel').style.display = 'flex';
     
     subscribeToMyRoom();
+    
+    // === ЗАПУСКАЕМ AFK ПРОВЕРКУ (ДОБАВИТЬ ЭТО) ===
+    startHostAFKCheck();
+
 
     // === НОВАЯ ЛОГИКА: Таймер на 5 минут (300000 мс) ===
     setTimeout(async () => {
@@ -2034,28 +2051,31 @@ function abortCatchingSession(silent = false) {
     }, 300000); // 5 минут
 };
 
-    window.leaveRoom = async function() {
-        if(!currentRoomId || !currentUser) return;
-        
-        await db.ref(`rooms/${currentRoomId}/players/${currentUser.uid}`).remove();
-        
-        const snap = await db.ref(`rooms/${currentRoomId}`).once('value');
-        if(snap.exists()) {
-             const val = snap.val();
-             if(!val.players || Object.keys(val.players).length === 0) {
-                 await db.ref(`rooms/${currentRoomId}`).remove();
-             } else if(val.host === currentUser.uid) {
-                 await db.ref(`rooms/${currentRoomId}`).remove();
-             }
+window.leaveRoom = async function() {
+    if(!currentRoomId || !currentUser) return;
+    
+    // Останавливаем AFK проверку (ДОБАВИТЬ ЭТО)
+    stopHostAFKCheck();
+    
+    await db.ref(`rooms/${currentRoomId}/players/${currentUser.uid}`).remove();
+    
+    const snap = await db.ref(`rooms/${currentRoomId}`).once('value');
+    if(snap.exists()) {
+        const val = snap.val();
+        if(!val.players || Object.keys(val.players).length === 0) {
+            await db.ref(`rooms/${currentRoomId}`).remove();
+        } else if(val.host === currentUser.uid) {
+            await db.ref(`rooms/${currentRoomId}`).remove();
         }
+    }
 
-        resetCompState();
-        
-        document.getElementById('currentRoomPanel').style.display = 'none';
-        document.getElementById('roomsBrowserPanel').style.display = 'flex';
-        
-        subscribeToRooms(); 
-    };
+    resetCompState();
+    
+    document.getElementById('currentRoomPanel').style.display = 'none';
+    document.getElementById('roomsBrowserPanel').style.display = 'flex';
+    
+    subscribeToRooms(); 
+};
 
 function resetCompState() {
     currentRoomId = null;
@@ -2064,9 +2084,94 @@ function resetCompState() {
     compRound = 0;
     unsubscribeFromMyRoom();
     
+    // Останавливаем AFK проверку
+    stopHostAFKCheck();
+    
     clearSpawnedParts();
-    // Передаем true, чтобы не было уведомления при выходе
-    abortCatchingSession(true); 
+    abortCatchingSession(true);
+}
+
+// ==========================================
+// ФУНКЦИИ AFK ПРОВЕРКИ (ДОБАВИТЬ ЗДЕСЬ)
+// ==========================================
+
+// Функция запуска AFK проверки для хоста
+function startHostAFKCheck() {
+    // Очищаем предыдущий интервал
+    if (hostAFKCheckInterval) {
+        clearInterval(hostAFKCheckInterval);
+        hostAFKCheckInterval = null;
+    }
+    
+    // Запускаем проверку каждую минуту
+    hostAFKCheckInterval = setInterval(async () => {
+        if (!currentRoomId || !currentUser) return;
+        
+        try {
+            const snap = await db.ref(`rooms/${currentRoomId}`).once('value');
+            const roomData = snap.val();
+            
+            // Если комнаты нет или она уже не в режиме ожидания, останавливаем проверку
+            if (!roomData || roomData.status !== 'waiting') {
+                stopHostAFKCheck();
+                return;
+            }
+            
+            // Проверяем, является ли текущий пользователь хостом
+            if (roomData.host !== currentUser.uid) {
+                stopHostAFKCheck();
+                return;
+            }
+            
+            // Проверяем время последнего действия хоста
+            const now = Date.now();
+            const lastHostActivity = roomData.lastHostActivity || roomData.created;
+            const inactiveTime = now - lastHostActivity;
+            
+            // Если хост неактивен более 5 минут
+            if (inactiveTime > HOST_AFK_TIMEOUT_MS) {
+                console.log("Хост AFK более 5 минут, удаляем комнату");
+                
+                // Удаляем комнату
+                await db.ref(`rooms/${currentRoomId}`).remove();
+                
+                // Показываем уведомление
+                alert("Комната удалена из-за неактивности владельца (5 минут AFK)");
+                
+                // Выходим из комнаты
+                leaveRoom();
+            }
+        } catch (error) {
+            console.error("Ошибка проверки AFK хоста:", error);
+        }
+    }, 60000); // Проверяем каждую минуту
+}
+
+// Функция остановки AFK проверки
+function stopHostAFKCheck() {
+    if (hostAFKCheckInterval) {
+        clearInterval(hostAFKCheckInterval);
+        hostAFKCheckInterval = null;
+    }
+}
+
+// Функция обновления активности хоста
+async function updateHostActivity() {
+    if (!currentRoomId || !currentUser) return;
+    
+    try {
+        const snap = await db.ref(`rooms/${currentRoomId}`).once('value');
+        const roomData = snap.val();
+        
+        // Проверяем, является ли текущий пользователь хостом и комната в режиме ожидания
+        if (roomData && roomData.host === currentUser.uid && roomData.status === 'waiting') {
+            await db.ref(`rooms/${currentRoomId}`).update({
+                lastHostActivity: Date.now()
+            });
+        }
+    } catch (error) {
+        console.error("Ошибка обновления активности хоста:", error);
+    }
 }
 
     window.joinRoom = async function(roomId) {
@@ -2180,6 +2285,8 @@ function resetCompState() {
                 });
             }
 
+            
+
             const startBtn = document.getElementById('startGameBtn');
             const readyBtn = document.getElementById('readyBtn');
             const waitingText = document.getElementById('waitingText');
@@ -2229,38 +2336,49 @@ function resetCompState() {
         });
     }
 
-    function unsubscribeFromMyRoom() {
-        if(currentRoomId && roomListener) {
-            db.ref(`rooms/${currentRoomId}`).off('value', roomListener);
-            roomListener = null;
-        }
+   function unsubscribeFromMyRoom() {
+    if(currentRoomId && roomListener) {
+        db.ref(`rooms/${currentRoomId}`).off('value', roomListener);
+        roomListener = null;
     }
+    
+    // Останавливаем AFK проверку (ДОБАВИТЬ ЭТО)
+    stopHostAFKCheck();
+}
 
-    window.toggleReady = function() {
-        if(!currentRoomId || !currentUser) return;
-        db.ref(`rooms/${currentRoomId}/players/${currentUser.uid}`).update({ ready: !isMyReady });
-    };
+window.toggleReady = function() {
+    if(!currentRoomId || !currentUser) return;
+    
+    // Обновляем активность хоста (ДОБАВИТЬ ЭТО)
+    updateHostActivity();
+    
+    db.ref(`rooms/${currentRoomId}/players/${currentUser.uid}`).update({ ready: !isMyReady });
+};
 
     // --- ЛОГИКА ИГРЫ (REAL-TIME) ---
 
-    window.startCompGame = async function() {
-        if(!currentRoomId) return;
-        const roomRef = db.ref(`rooms/${currentRoomId}`);
-        const snap = await roomRef.once('value');
-        const players = snap.val().players;
-        const updates = {};
-        
-        Object.keys(players).forEach(uid => {
-            updates[`players/${uid}/score`] = 0;
-            updates[`players/${uid}/totalTime`] = 0;
-        });
-        
-        updates['status'] = 'playing';
-        updates['currentRound'] = 0;
-        
-        await roomRef.update(updates);
-        setTimeout(() => hostStartNextRound(1), 1000);
-    };
+window.startCompGame = async function() {
+    if(!currentRoomId) return;
+    
+    // Обновляем активность хоста (ДОБАВИТЬ ЭТО)
+    await updateHostActivity();
+    
+    const roomRef = db.ref(`rooms/${currentRoomId}`);
+    const snap = await roomRef.once('value');
+    const players = snap.val().players;
+    const updates = {};
+    
+    Object.keys(players).forEach(uid => {
+        updates[`players/${uid}/score`] = 0;
+        updates[`players/${uid}/totalTime`] = 0;
+    });
+    
+    updates['status'] = 'playing';
+    updates['currentRound'] = 0;
+    
+    await roomRef.update(updates);
+    setTimeout(() => hostStartNextRound(1), 1000);
+};
 
     async function hostStartNextRound(roundNum) {
     if (!currentRoomId) return;
