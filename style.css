@@ -650,7 +650,7 @@ input, textarea {
 /* Стеклянный стиль для кастомного фона */
 .info-frame.settings-frame.adaptive-glass,
 .settings-content-framed.adaptive-glass {
-    background: rgba(20, 22, 35, 0.75) !important; /* Увеличиваем непрозрачность */
+    background: rgba(5, 5, 5, 0.95) !important; /* Увеличиваем непрозрачность */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -1237,18 +1237,23 @@ input, textarea {
     transform: scale(0.98);
 }
 
-/* Выпадающий список - подгонка под темный стиль */
+/* Выпадающий список и поле ввода - ФИКС ШИРИНЫ */
 .settings-select-inline {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: white;
+    background: rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: white !important;
     padding: 6px 10px;
     border-radius: 4px;
     font-size: 12px;
     outline: none;
     cursor: pointer;
+    
+    /* ФИКС: Делаем так, чтобы padding входил в общую ширину 100% */
     width: 100%;
-    margin-top: 5px;
+    box-sizing: border-box !important; 
+    max-width: 100%;
+    
+    margin-top: 0px;
 }
 
 .settings-select-inline:hover {
@@ -1610,4 +1615,572 @@ input, textarea {
     background: rgba(255, 215, 0, 0.15);
     color: #FFD700;
     border-color: rgba(255, 215, 0, 0.3);
+}
+
+
+/* =====================================================
+   ФИКСЫ: БЕЛЫЙ ТЕКСТ И КОМПАКТНЫЕ ОТСТУПЫ
+   ===================================================== */
+
+/* 1. ПРИНУДИТЕЛЬНЫЙ БЕЛЫЙ ТЕКСТ ВНУТРИ РАМОК */
+.info-frame.settings-frame {
+    color: #ffffff !important;
+}
+
+/* Красим заголовки (h4), обычный текст и спаны в белый */
+.info-frame.settings-frame h4,
+.info-frame.settings-frame div,
+.info-frame.settings-frame span:not(.info-stat-label) {
+    color: #ffffff !important;
+}
+
+/* Мелкий текст описания делаем светло-серым (читаемым), а не темным */
+.info-stat-label.small {
+    color: #cccccc !important;
+    margin-top: 2px !important;
+}
+
+/* 2. УМЕНЬШЕНИЕ ПРОБЕЛОВ (КОМПАКТНОСТЬ) */
+
+/* Контейнер списка настроек */
+.settings-list-framed {
+    display: flex;
+    flex-direction: column;
+    /* ФИКС: Единое расстояние между всеми блоками */
+    gap: 10px !important; 
+    padding: 15px 20px !important;
+    background: transparent !important;
+}
+
+/* Сама рамка настройки (Профиль, Клавиши и т.д.) */
+.info-frame.settings-frame {
+    /* ФИКС: Убираем внешние отступы, чтобы gap работал ровно */
+    margin: 0 !important;
+    
+    padding: 10px 15px !important; 
+    min-height: auto !important;
+    align-items: flex-start !important;
+    
+    /* Стили цвета и фона */
+    color: #ffffff !important;
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Убираем лишний отступ у иконки, чтобы она была по центру текста */
+.settings-icon {
+    margin-top: 2px;
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+}
+
+/* Инпуты и кнопки внутри - подтягиваем выше */
+.settings-select-inline,
+input.settings-select-inline,
+.settings-action-btn {
+    margin-top: 5px !important; /* Ближе к заголовку */
+    height: 34px !important;    /* Чуть компактнее по высоте */
+    font-size: 13px;
+}
+
+/* Если есть блок с кнопками (Сохранить), подтягиваем его */
+.settings-action-row {
+    margin-top: 5px !important;
+}
+
+/* Убираем отступы у заголовков внутри блока */
+.info-stats h4 {
+    margin-bottom: 2px !important;
+}
+
+/* =====================================================
+   DARK MODE OVERRIDE (PREMIUM STYLE)
+   Вставить в самый низ style.css
+   ===================================================== */
+
+/* 1. Основной контейнер окна (Глубокий темный фон с размытием) */
+.settings-content-framed,
+.auth-body,
+.auth-content,
+.auth-footer {
+    /* Очень темный оттенок, почти черный, но с прозрачностью для стиля */
+    background: rgba(5, 5, 7, 0.95) !important; 
+    
+    /* Тонкая, едва заметная рамка */
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    
+    /* Сильная тень для отделения от фона */
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.9) !important;
+    
+    /* Сохраняем эффект размытия фона за окном */
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+}
+
+/* 2. Шапка настроек */
+.settings-header, .auth-header {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* 3. Фон списка настроек */
+.settings-list-framed {
+    background: transparent !important; /* Убираем лишний фон, оставляем общий */
+    padding: 20px 25px !important;
+}
+
+/* 4. Блоки настроек (Сами плашки) */
+.info-frame.settings-frame {
+    /* Едва заметный слой поверх черного фона */
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    border-radius: 8px !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Ховер эффект: плашка чуть светлеет и рамка становится ярче */
+.info-frame.settings-frame:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-1px) !important; /* Легкое всплытие */
+}
+
+/* 5. Иконки */
+.settings-icon {
+    background: rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #e0e0e0 !important;
+}
+
+/* 6. Поля ввода и выпадающие списки */
+.settings-select-inline,
+.auth-input {
+    background: rgba(0, 0, 0, 0.8) !important; /* Глубокий черный */
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+    border-radius: 6px !important;
+}
+
+.settings-select-inline:hover,
+.auth-input:focus {
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    background: rgba(0, 0, 0, 1) !important;
+}
+
+/* 7. Кнопки (Изменить, Сохранить) */
+.settings-action-btn, .auth-submit-btn {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #cccccc !important;
+}
+
+/* При наведении кнопка становится белой (сохраняем стилистику приложения) */
+.settings-action-btn:hover, .auth-submit-btn:hover {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.3) !important;
+}
+
+/* 8. Текст внутри настроек */
+.settings-title, .auth-title,
+.info-name,
+.info-stat-value {
+    color: #ffffff !important;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5) !important;
+}
+
+.info-stat-label.small {
+    color: #888888 !important; /* Серый для описаний */
+}
+
+
+/* =====================================================
+   НОВЫЕ СТИЛИ ДЛЯ ОКНА "СТАТИСТИКА ИГРОКА"
+   Добавляют закругленную рамку, скролл и фикс контента
+   ===================================================== */
+
+#player-stats-modal .settings-content-framed {
+    /* Переопределяем стили для конкретно этого окна */
+    max-width: 90vw; /* Адаптивность */
+    border-radius: 15px !important; /* Более сильное скругление */
+    
+    display: flex;
+    flex-direction: column;
+}
+
+#player-stats-modal .auth-body {
+    /* Включаем вертикальный скролл для контента */
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    
+    /* Занимает все доступное место под шапкой */
+    flex: 1; 
+    
+    /* Отступ справа, чтобы контент не прилипал к скроллбару */
+    padding-right: 10px !important;
+}
+
+/* Кастомизация скроллбара внутри статистики */
+#player-stats-modal .auth-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+#player-stats-modal .auth-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+#player-stats-modal .auth-body::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 4px;
+}
+
+#player-stats-modal .auth-body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255,255,255,0.4);
+}
+
+/* Уведомление о полноэкранном режиме */
+.fullscreen-notification {
+    position: absolute;
+    top: 79px; /* Чуть-чуть повыше */
+    left: 20px;
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.5s ease;
+    pointer-events: none;
+}
+
+.fullscreen-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.notification-content {
+    background: #cccccc;
+    color: #000000;
+    padding: 10px 15px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+    border: 1px solid #aaaaaa;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    max-width: 260px;
+}
+
+.key-button {
+    background: #333333;
+    color: #ffffff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    border: 1px solid #555555;
+    font-family: monospace;
+    min-width: 40px;
+    text-align: center;
+}
+
+/* =====================================================
+   НОВЫЕ СТИЛИ ДЛЯ СОРЕВНОВАТЕЛЬНОГО РЕЖИМА
+   ===================================================== */
+
+/* Кнопка соревнований */
+/* Кнопка соревнований (стиль как у настроек) */
+.comp-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.comp-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+    box-shadow: none; /* Убираем свечение */
+}
+
+.comp-btn:active {
+    transform: scale(0.95);
+}
+/* Сетка игроков в комнате */
+.room-players-grid {
+    display: flex;
+    gap: 10px;
+}
+.room-player-card {
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.2);
+    width: 100px;
+}
+
+/* Уведомление о приглашении (аналог fullscreen) */
+.invite-notification {
+    position: absolute;
+    top: 130px;
+    right: 20px; /* Справа */
+    z-index: 20000;
+    opacity: 0;
+    transform: translateX(50px);
+    transition: all 0.5s ease;
+    pointer-events: none;
+}
+.invite-notification.show {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+}
+.invite-content {
+    background: #2AABEE; /* Синий цвет */
+    color: white;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+.invite-actions {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 5px;
+}
+.invite-accept-btn {
+    background: #4CAF50;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    flex: 1;
+}
+.invite-decline-btn {
+    background: #f44336;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+    flex: 1;
+}
+
+/* Список комнат */
+.room-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background: rgba(255,255,255,0.05);
+    margin-bottom: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.room-item:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Улучшенные стили лобби */
+.room-player-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 15px 10px;
+    transition: all 0.3s ease;
+}
+
+.room-player-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* Эффект для списка комнат */
+.room-item {
+    background: rgba(42, 171, 238, 0.05);
+    border: 1px solid rgba(42, 171, 238, 0.1);
+    transition: all 0.2s ease;
+}
+
+.room-item:hover {
+    background: rgba(42, 171, 238, 0.15);
+    border-color: rgba(42, 171, 238, 0.3);
+    padding-left: 20px; /* Эффект сдвига */
+}
+
+/* =====================================================
+   ИСПРАВЛЕНИЕ КНОПКИ СОРЕВНОВАНИЙ (КУБОК)
+   ===================================================== */
+
+.comp-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    width: 42px;
+    height: 36px;
+    padding: 0;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    /* Убираем лишние отступы, если есть */
+    margin: 0;
+}
+
+.comp-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: none; /* Убираем свечение, если было */
+}
+
+.comp-btn:active {
+    transform: scale(0.95);
+}
+
+/* =====================================================
+   DARK MODE OVERRIDE (ОБНОВЛЕНИЕ ДЛЯ КОМНАТ)
+   ===================================================== */
+
+/* 1. Стилизация оверлея "Создать комнату" под общий темный стиль */
+.dark-overlay-panel {
+    background: rgba(5, 5, 7, 0.98) !important; /* Глубокий черный */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center;
+}
+
+.dark-overlay-panel h3 {
+    color: white;
+    text-shadow: 0 0 10px rgba(255,255,255,0.2);
+    font-weight: 600;
+}
+
+/* 2. Стилизация панели Лобби (внутри комнаты) */
+.lobby-panel-framed {
+    /* Темный фон вместо зеленого */
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 12px;
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* Заголовки внутри лобби */
+.lobby-header-text {
+    color: #ffffff !important;
+    font-size: 18px;
+    font-weight: bold;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.lobby-sub-text {
+    color: #888 !important;
+}
+
+/* Карточки игроков в лобби - темный стиль */
+.room-player-card {
+    background: rgba(0, 0, 0, 0.4) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.room-player-card:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    transform: translateY(-3px);
+}
+
+/* Кнопка "Скопировать" в стиле настроек */
+.copy-link-btn {
+    background: rgba(42, 171, 238, 0.1) !important;
+    border: 1px solid rgba(42, 171, 238, 0.3) !important;
+    color: #2AABEE !important;
+    transition: all 0.2s ease;
+}
+.copy-link-btn:hover {
+    background: rgba(42, 171, 238, 0.2) !important;
+    color: white !important;
+}
+
+/* ================================================================
+   ФИКСЫ ИНТЕРФЕЙСА (КУБОК И СВЕЧЕНИЕ)
+   Вставить в самый низ style.css
+   ================================================================ */
+
+/* 1. СТИЛЬ КНОПКИ КУБКА (Такой же как у Настроек) */
+.comp-btn {
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    
+    /* Размеры и отступы как у кнопки настроек */
+    padding: 8px 10px !important;
+    width: auto !important; 
+    height: auto !important;
+    min-width: 44px; /* Чтобы не была слишком узкой */
+    
+    border-radius: 6px !important;
+    cursor: pointer;
+    font-size: 20px !important; /* Размер эмодзи */
+    line-height: 1;
+    
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    
+    /* Убираем любые дефолтные отступы */
+    margin: 0 !important;
+    box-sizing: border-box;
+}
+
+.comp-btn:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.comp-btn:active {
+    transform: scale(0.95);
+}
+
+/* 2. УБИРАЕМ СВЕЧЕНИЕ (GLOW) У ВСЕХ КНОПОК В НАСТРОЙКАХ И КОМНАТАХ */
+.settings-action-btn:hover,
+.auth-submit-btn:hover,
+.leaderboard-register-btn:hover,
+#startGameBtn:hover {
+    box-shadow: none !important; /* Полностью убирает внешнее свечение */
+    border-color: rgba(255, 255, 255, 0.8) !important; /* Просто делаем рамку ярче */
+    background: rgba(255, 255, 255, 0.15) !important; /* Чуть светлее фон */
+    color: white !important; /* Белый текст */
+    transform: translateY(-1px); /* Легкий подъем вместо свечения */
+}
+
+/* Специфично для зеленой кнопки "Начать игру" */
+#startGameBtn {
+    box-shadow: none !important;
 }
