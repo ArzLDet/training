@@ -2175,7 +2175,6 @@ function resetCompState() {
                             <div style="font-size:24px;">👤</div>
                             <div style="font-weight:bold; color:white; font-size:13px;">${p.name}</div>
                             <div>${readyStatus}</div>
-                            <div style="color:#FFD700; font-size:11px;">Счет: ${p.score || 0}</div>
                         </div>
                     `;
                 });
