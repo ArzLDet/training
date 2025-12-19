@@ -2184,3 +2184,47 @@ input.settings-select-inline,
 #startGameBtn {
     box-shadow: none !important;
 }
+
+/* ============================================================
+   ФИКС ЛИДЕРБОРДА: ОГРАНИЧЕНИЕ НА 13 СТРОК И СКРОЛЛ
+   ============================================================ */
+
+/* Контейнер списка игроков и комнат */
+.leaderboard-table-container {
+    max-height: 585px !important; /* Высота примерно под 13 строк */
+    overflow-y: auto !important;   /* Включаем вертикальный скролл */
+    overflow-x: hidden !important; /* Убираем горизонтальный дергающийся скролл */
+    padding-right: 5px;            /* Зазор, чтобы скролл не лип к тексту */
+    display: block;                /* Убеждаемся, что блок корректно считает высоту */
+}
+
+/* Красивый тонкий скроллбар (Chrome, Edge, Safari) */
+.leaderboard-table-container::-webkit-scrollbar {
+    width: 6px; /* Ширина полоски */
+}
+
+.leaderboard-table-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05); /* Цвет дорожки */
+    border-radius: 10px;
+}
+
+.leaderboard-table-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2); /* Цвет ползунка */
+    border-radius: 10px;
+}
+
+.leaderboard-table-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4); /* Цвет при наведении */
+}
+
+/* Скроллбар для Firefox */
+.leaderboard-table-container {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+/* Убираем растягивание таблицы, чтобы она не ломала верстку */
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
