@@ -439,6 +439,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (val) {
                 scores.push({ ...val, uid: childSnapshot.key });
             }
+            
         });
 
         // 2. СОРТИРОВКА
@@ -486,17 +487,47 @@ document.addEventListener('DOMContentLoaded', () => {
                 changeHtml = `<span class="position-change new-entry">NEW</span>`;
             }
 
-            // --- ОТОБРАЖЕНИЕ НИКА И СЕРВЕРА (НОВОЕ) ---
+            // --- ОТОБРАЖЕНИЕ НИКА И СЕРВЕРА ---
             let displayName = score.username || 'Неизвестный';
             if (score.server) {
                 displayName = `[${score.server}] ${displayName}`;
             }
-            // ------------------------------------------
 
             const isCurrentUser = currentUser && uid === currentUser.uid;
-            const userStyle = isCurrentUser ? 'style="background: rgba(42, 171, 238, 0.1); border-left: 3px solid #2AABEE;"' : '';
-            const nameColor = isCurrentUser ? '#2AABEE' : 'white';
+
+            // ОПРЕДЕЛЯЕМ СТИЛЬ ДЛЯ ТОП-3
+            let rowStyle = '';
+            let nameStyle = '';
+            let rankClass = '';
             
+            if (index === 0) {
+                // 1 место - золото
+                rowStyle = 'background: linear-gradient(90deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%); border-left: 3px solid #FFD700;';
+                nameStyle = 'color: #FFD700; font-weight: 700; text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);';
+                rankClass = 'rank-gold';
+            } else if (index === 1) {
+                // 2 место - серебро
+                rowStyle = 'background: linear-gradient(90deg, rgba(192, 192, 192, 0.15) 0%, rgba(192, 192, 192, 0.05) 100%); border-left: 3px solid #C0C0C0;';
+                nameStyle = 'color: #C0C0C0; font-weight: 700; text-shadow: 0 0 8px rgba(192, 192, 192, 0.5);';
+                rankClass = 'rank-silver';
+            } else if (index === 2) {
+                // 3 место - бронза
+                rowStyle = 'background: linear-gradient(90deg, rgba(205, 127, 50, 0.15) 0%, rgba(205, 127, 50, 0.05) 100%); border-left: 3px solid #CD7F32;';
+                nameStyle = 'color: #CD7F32; font-weight: 700; text-shadow: 0 0 8px rgba(205, 127, 50, 0.5);';
+                rankClass = 'rank-bronze';
+            } else if (isCurrentUser) {
+                // Текущий пользователь НЕ в топ-3 - синий
+                rowStyle = 'background: rgba(42, 171, 238, 0.1); border-left: 3px solid #2AABEE;';
+                nameStyle = 'color: #2AABEE; font-weight: 600;';
+                rankClass = 'current-user';
+            } else {
+                // Остальные пользователи
+                nameStyle = 'color: white; font-weight: 600;';
+            }
+
+            const styleAttr = rowStyle ? `style="${rowStyle}"` : '';
+            const nameStyleAttr = nameStyle ? `style="${nameStyle}"` : '';
+
             let valueDisplay;
             if (field === 'totalPartsCaught') {
                 valueDisplay = score[field];
@@ -506,11 +537,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const dateStr = score.timestamp ? new Date(score.timestamp).toLocaleDateString() : '-';
 
-            // --- ИЗМЕНЕНИЕ: Добавляем onclick для открытия статистики ---
+            // --- ИЗМЕНЕНИЕ: Добавляем класс для ранга и открытия статистики ---
             leaderboardHTML += `
-                <div class="leaderboard-row" ${userStyle} onclick="openPlayerStatsModal('${uid}', '${displayName.replace(/'/g, "\\'")}')">
+                <div class="leaderboard-row ${rankClass}" ${styleAttr} onclick="openPlayerStatsModal('${uid}', '${displayName.replace(/'/g, "\\'")}')">
                     <div style="font-weight:bold; color:#666;">${currentRank}</div>
-                    <div style="color: ${nameColor}; font-weight:600;">${displayName}</div>
+                    <div class="leaderboard-username" ${nameStyleAttr}>${displayName}</div>
                     <div style="font-family:monospace;">${valueDisplay}</div>
                     <div style="color:#888; font-size:12px;">${unit}</div>
                     <div style="color:#666; font-size:11px;">${dateStr}</div>
@@ -756,7 +787,7 @@ function updateUserInterface() {
     if (closeSettingsBtn) closeSettingsBtn.onclick = closeSettings;
 
     window.addEventListener('click', (event) => {
-        if (event.target === settingsModal) closeSettings();
+        if (event.target === settingsModal) closeSettings;
         if (event.target === authModal) closeAuthModal();
         if (event.target === document.getElementById('compModal')) closeCompModal();
     });
@@ -1833,74 +1864,90 @@ function abortCatchingSession(silent = false) {
         'Тормоза': 'images/tormoza-sport.png'
     };
 
-    window.openPlayerStatsModal = async function(targetUid, targetName) {
-        const modal = document.getElementById('player-stats-modal');
-        const title = document.getElementById('player-stats-title');
-        const container = document.getElementById('player-stats-container');
-        
-        if (!modal) return;
+// Обязательно убедитесь, что PARTS_CONFIG доступен глобально!
+// Если он внутри document.addEventListener, замените const PARTS_CONFIG на window.PARTS_CONFIG
 
-        modal.style.display = 'block';
-        
-        title.textContent = targetName;
-        container.innerHTML = '<div style="padding: 40px; text-align: center; color: #888;">Загрузка данных...</div>';
+window.openPlayerStatsModal = async function(uid, username) {
+    const modal = document.getElementById('playerStatsModal');
+    const grid = document.getElementById('statsGrid');
+    const nameHeader = document.getElementById('statsPlayerName');
+    
+    if (!modal || !grid) return;
 
-        try {
-            const snapshot = await db.ref('users').child(targetUid).child('part_stats').once('value');
+    nameHeader.textContent = username;
+    grid.innerHTML = '<div style="color:#888; grid-column: 1/-1; text-align:center; padding: 40px;">Загрузка данных...</div>';
+    modal.style.display = 'flex';
+
+    const config = window.PARTS_CONFIG || (typeof PARTS_CONFIG !== 'undefined' ? PARTS_CONFIG : null);
+    if (!config) {
+        console.error("Ошибка: PARTS_CONFIG не найден");
+        grid.innerHTML = '<div style="color:#ff453a; grid-column: 1/-1; text-align:center;">Ошибка конфигурации</div>';
+        return;
+    }
+
+    try {
+        const snapshot = await db.ref(`users/${uid}/part_stats`).once('value');
+        const stats = snapshot.val() || {};
+        
+        let gridHTML = '';
+        
+        for (const partName in config) {
+            const data = stats[partName] || { fastestTime: 0, averageTime: 0, totalCount: 0 };
             
-            if (!snapshot.exists()) {
-                container.innerHTML = '<div style="padding: 40px; text-align: center; color: #888;">Статистика отсутствует</div>';
-                return;
-            }
-
-            const statsData = snapshot.val();
-            let htmlContent = '';
-
-            for (const [partName, imgPath] of Object.entries(PARTS_CONFIG)) {
-                const stat = statsData[partName] || { fastestTime: 0, averageTime: 0, totalCount: 0 };
-                
-                const bestTime = stat.fastestTime > 0 ? stat.fastestTime.toFixed(3) + ' сек' : '-';
-                const avgTime = stat.averageTime > 0 ? stat.averageTime.toFixed(3) + ' сек' : '-';
-
-                htmlContent += `
-                <div class="info-item">
-                    <div class="info-frame settings-frame" style="background: rgba(255, 255, 255, 0.04) !important; display: flex; align-items: center; padding: 10px;">
-                        
-                        <div style="width: 70px; height: 50px; flex-shrink: 0; margin-right: 15px;">
-                            <img src="${imgPath}" style="width: 100%; height: 100%; object-fit: contain; border-radius: 4px;">
-                        </div>
-
-                        <div style="flex: 1;">
-                            <div style="color: white; font-weight: bold; font-size: 15px; margin-bottom: 4px;">${partName}</div>
-                            
-                            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #ccc;">
-                                <span>Лучшее: <span style="color: #4CAF50;">${bestTime}</span></span>
-                                <span>Среднее: <span style="color: white;">${avgTime}</span></span>
-                                <span>Всего: <span style="color: #2AABEE;">${stat.totalCount}</span></span>
-                            </div>
-                        </div>
+            // ИСПРАВЛЕНИЕ: Правильно читаем количество деталей
+            const count = Number(data.totalCount || 0);
+            const fastest = Number(data.fastestTime || 0);
+            const average = Number(data.averageTime || 0);
+            
+            const icon = config[partName];
+            
+            gridHTML += `
+                <div class="stat-card">
+                    <img src="${icon}" alt="${partName}" onerror="this.src='images/default.png'">
+                    <div class="stat-card-name">${partName}</div>
+                    
+                    <div class="stat-card-row">
+                        <span class="stat-label">Рекорд:</span>
+                        <span class="stat-value fast">${fastest > 0 ? fastest.toFixed(3) + 'с' : '—'}</span>
+                    </div>
+                    
+                    <div class="stat-card-row">
+                        <span class="stat-label">Среднее:</span>
+                        <span class="stat-value">${average > 0 ? average.toFixed(3) + 'с' : '—'}</span>
+                    </div>
+                    
+                    <div class="stat-card-row">
+                        <span class="stat-label">Словлено:</span>
+                        <span class="stat-value" style="color:#2AABEE; font-weight:bold;">${count} шт.</span>
                     </div>
                 </div>
-                `;
-            }
-
-            container.innerHTML = htmlContent;
-
-        } catch (error) {
-            console.error(error);
-            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #ff453a;">Ошибка загрузки</div>';
+            `;
         }
-    };
+        grid.innerHTML = gridHTML;
+    } catch (e) {
+        console.error("Ошибка БД:", e);
+        grid.innerHTML = '<div style="color:#ff453a; grid-column: 1/-1; text-align:center;">Ошибка подключения к базе</div>';
+    }
+};
 
-    window.closePlayerStatsModal = function() {
-        const modal = document.getElementById('player-stats-modal');
-        if (modal) modal.style.display = 'none';
-    };
+// Исправленная функция закрытия (ID приведен к одному виду)
+window.closePlayerStatsModal = function() {
+    const modal = document.getElementById('playerStatsModal');
+    if (modal) modal.style.display = 'none';
+};
 
-    window.addEventListener('click', (event) => {
-        const pModal = document.getElementById('player-stats-modal');
-        if (event.target === pModal) closePlayerStatsModal();
-    });
+// Закрытие по клику на фон
+window.addEventListener('click', (event) => {
+    const modal = document.getElementById('playerStatsModal');
+    if (event.target === modal) closePlayerStatsModal();
+});
+
+// НОВОЕ: Закрытие по клавише Esc
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        closePlayerStatsModal();
+    }
+});
 
     function showFullscreenNotification() {
         const notification = document.getElementById('fullscreenNotification');
@@ -2270,6 +2317,8 @@ async function updateHostActivity() {
             let playerCount = 0;
             const amIHost = (data.host === currentUser.uid);
 
+
+            
             if(data.players) {
                 Object.values(data.players).forEach(p => {
                     playerCount++;
@@ -2711,4 +2760,36 @@ window.finishCompAndClose = async function() {
         }
     }, 1500);
 
+    // При генерации таблицы лидеров
+function renderLeaderboard(players, currentUser) {
+    const container = document.querySelector('.leaderboard-table-container');
+    container.innerHTML = '';
+    
+    players.forEach((player, index) => {
+        const row = document.createElement('div');
+        row.className = 'leaderboard-row';
+        
+        // Определяем позицию (топ-1, топ-2, топ-3)
+        if (index === 0) row.classList.add('rank-1');
+        else if (index === 1) row.classList.add('rank-2');
+        else if (index === 2) row.classList.add('rank-3');
+        
+        // Проверяем, это текущий пользователь?
+        if (currentUser && player.id === currentUser.id) {
+            row.classList.add('current-user');
+        }
+        
+        // Создаем содержимое строки
+        row.innerHTML = `
+            <div>${index + 1}</div>
+            <div>${player.name}</div>
+            <div>${player.bestTime}</div>
+            <div>${player.avgTime}</div>
+            <div>${player.partsCount}</div>
+            <div>${player.lastDate}</div>
+        `;
+        
+        container.appendChild(row);
+    });
+}
 });
