@@ -1010,12 +1010,15 @@ input, textarea {
 .settings-modal {
     display: none;
     position: absolute;
-    z-index: 10000;
-    left: 0;
     top: 0;
-    width: 1440px;
-    height: 900px;
-    background-color: rgba(0, 0, 0, 0.7);
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px); /* Размытие фона как в статистике */
+    z-index: 3000;
+    justify-content: center;
+    align-items: center;
 }
 
 .settings-content-framed {
@@ -1483,12 +1486,30 @@ input, textarea {
     color: #bbb;
     font-size: 13px;
 }
+/* =====================================================
+   ТОП-3 ЦВЕТА - ИСПРАВЛЕННАЯ ВЕРСИЯ
+   ===================================================== */
 
-/* ТОП-3 ЦВЕТА */
-.leaderboard-row:nth-child(1) div:nth-child(1) { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
-.leaderboard-row:nth-child(2) div:nth-child(1) { color: #C0C0C0; }
-.leaderboard-row:nth-child(3) div:nth-child(1) { color: #CD7F32; }
+/* Базовый цвет для всех номеров (более яркий) */
+.leaderboard-row div:nth-child(1) { 
+    font-weight: bold; 
+    color: #CCCCCC; /* Светло-серый вместо темного #666 */
+}
 
+
+/* Дополнительно: можно добавить легкий фон для топ-3 строк */
+.leaderboard-row:nth-child(1) { 
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.08), transparent);
+    border-left: 3px solid #FFD700;
+}
+.leaderboard-row:nth-child(2) { 
+    background: linear-gradient(90deg, rgba(192, 192, 192, 0.08), transparent);
+    border-left: 3px solid #C0C0C0;
+}
+.leaderboard-row:nth-child(3) { 
+    background: linear-gradient(90deg, rgba(205, 127, 50, 0.08), transparent);
+    border-left: 3px solid #CD7F32;
+}
 
 /* 5. КНОПКИ В УГЛУ (Регистрация / Выход) */
 
@@ -2228,3 +2249,288 @@ input.settings-select-inline,
     width: 100%;
     border-collapse: collapse;
 }
+
+/* =============================================================
+   ОБНОВЛЕННЫЙ ВИЗУАЛ ТАБЛИЦЫ ЛИДЕРОВ И ПОПАПА ДЕТАЛЕЙ
+   ============================================================= */
+
+/* Стили строк таблицы лидеров */
+.leaderboard-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 80px 40px 60px;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+}
+
+.leaderboard-row:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+    border-left-color: #2AABEE;
+}
+
+/* Акценты для ТОП-3 */
+.leaderboard-row.rank-1 { border-left-color: #FFD700; background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent); }
+.leaderboard-row.rank-2 { border-left-color: #C0C0C0; background: linear-gradient(90deg, rgba(192, 192, 192, 0.1), transparent); }
+.leaderboard-row.rank-3 { border-left-color: #CD7F32; background: linear-gradient(90deg, rgba(205, 127, 50, 0.1), transparent); }
+
+.rank-icon { font-size: 18px; text-align: center; }
+
+/* Исправление модального окна статистики */
+#playerStatsModal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed; /* Изменено с absolute на fixed */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    z-index: 3000;
+    justify-content: center;
+    align-items: center;
+}
+
+.stats-modal-content {
+    width: 900px;
+    max-height: 80vh;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 20px; /* Закругление углов */
+    border-top-left-radius: 20px; /* Явное указание для верхних углов */
+    border-top-right-radius: 20px; /* Явное указание для верхних углов */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 0 50px rgba(0,0,0,1);
+}
+
+.stats-modal-header {
+    padding: 25px;
+    background: #222;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top-left-radius: 19px; /* Согласуем с основным закруглением */
+    border-top-right-radius: 19px; /* Согласуем с основным закруглением */
+}
+
+.stats-player-info h2 { 
+    margin: 0; 
+    color: #fff; 
+    font-size: 28px; 
+}
+
+.stats-player-info span { 
+    color: #888; 
+    font-size: 14px; 
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1; /* Добавляем, чтобы grid занимал оставшееся пространство */
+}
+
+.stat-card {
+    background: #252525;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid #333;
+    transition: transform 0.2s;
+}
+
+.stat-card:hover { 
+    transform: translateY(-5px); 
+    border-color: #2AABEE; 
+}
+
+.stat-card img { 
+    width: 60px; 
+    height: 60px; 
+    object-fit: contain; 
+    margin-bottom: 10px; 
+    filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); 
+}
+
+.stat-card-name { 
+    font-weight: bold; 
+    color: #eee; 
+    margin-bottom: 10px; 
+    font-size: 14px; 
+    text-align: center; 
+}
+
+.stat-card-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    margin: 3px 0;
+}
+
+.stat-label { 
+    color: #888; 
+}
+
+.stat-value { 
+    color: #2AABEE; 
+    font-weight: bold; 
+}
+
+.stat-value.fast { 
+    color: #4CAF50; 
+}
+
+.close-stats {
+    background: none;
+    border: none;
+    color: #888;
+    font-size: 30px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.close-stats:hover { 
+    color: #fff; 
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* Улучшенные стили для рядов внутри карточки статистики */
+.stat-card-name {
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 10px;
+    font-size: 16px;
+    text-align: center;
+}
+
+.stat-card-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 2px 0;
+    font-size: 13px;
+}
+
+.stat-label {
+    color: #888;
+}
+
+.stat-value {
+    color: #eee;
+}
+
+.stat-value.fast {
+    color: #34c759; /* Зеленый цвет для рекорда */
+    font-weight: bold;
+}
+
+/* Настройка иконок, чтобы они не были огромными */
+.stat-card img {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    margin-bottom: 10px;
+}
+
+/* Только для первых 3 строк (предполагается, что они топ-3) */
+.leaderboard-row:nth-child(1) div:nth-child(2) { 
+    color: #fff1a0 !important; 
+    font-weight: bold;
+}
+
+.leaderboard-row:nth-child(2) div:nth-child(2) { 
+    color: #C0C0C0 !important; 
+    font-weight: bold;
+}
+
+.leaderboard-row:nth-child(3) div:nth-child(2) { 
+    color: #ca9e72 !important; 
+    font-weight: bold;
+}
+
+/* Синий для текущего пользователя (если строка имеет класс .current-user) */
+.leaderboard-row.current-user div:nth-child(2) { 
+    color: #2AABEE !important; 
+    text-shadow: 0 0 10px rgba(42, 171, 238, 0.4);
+}
+
+
+/* =====================================================
+   ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ДЛЯ ЦВЕТНЫХ ФОНОВ ТАБЛИЦЫ ЛИДЕРОВ
+   (ДОБАВИТЬ В КОНЕЦ ФАЙЛА)
+   ===================================================== */
+
+/* 1. ВОССТАНАВЛИВАЕМ БАЗОВЫЕ СТИЛИ ДЛЯ ВСЕХ СТРОК */
+.leaderboard-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 80px 40px 60px;
+    align-items: center;
+    padding: 12px 15px;
+    margin-bottom: 6px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border-left: 3px solid transparent;
+}
+
+.leaderboard-row:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+}
+
+/* Синий цвет применяется только если у строки НЕТ классов rank-1, rank-2 или rank-3 */
+.leaderboard-row.current-user:not(.rank-1):not(.rank-2):not(.rank-3) {
+    background: rgba(42, 171, 238, 0.2) !important;
+    border-left: 3px solid #2AABEE !important;
+}
+
+/* Стили для ТОП-3 (они теперь всегда будут главными) */
+.leaderboard-row.rank-1 {
+    background: rgba(255, 215, 0, 0.15) !important;
+    border-left: 3px solid #FFD700 !important;
+}
+.leaderboard-row.rank-2 {
+    background: rgba(192, 192, 192, 0.15) !important;
+    border-left: 3px solid #C0C0C0 !important;
+}
+.leaderboard-row.rank-3 {
+    background: rgba(205, 127, 50, 0.15) !important;
+    border-left: 3px solid #CD7F32 !important;
+}
+
+
+/* Цвет ников для текущего пользователя (синий) */
+.leaderboard-row.current-user div:nth-child(2) { 
+    color: #2AABEE !important;
+    font-weight: bold;
+}
+
+/* 6. НЕ ТРОГАТЬ старые стили для номеров (оставить как есть) */
+/* Они должны остаться в коде, не удалять их: */
+/*
+.leaderboard-row:nth-child(1) div:nth-child(1) { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+.leaderboard-row:nth-child(2) div:nth-child(1) { color: #C0C0C0; }
+.leaderboard-row:nth-child(3) div:nth-child(1) { color: #CD7F32; }
+*/  
+
