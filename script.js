@@ -384,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         try {
             // ЛИМИТ 15
-            const snapshot = await db.ref('leaderboard_best_time').orderByChild('bestTotalTime').limitToFirst(15).once('value');
+            const snapshot = await db.ref('leaderboard_best_time').orderByChild('bestTotalTime').limitToFirst(100).once('value');
             displayLeaderboard(snapshot, container, 'bestTotalTime', 'сек', true);
         } catch (error) {
             console.error(error);
@@ -397,7 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         try {
             // ЛИМИТ 15
-            const snapshot = await db.ref('leaderboard_avg_time').orderByChild('averageTotalTime').limitToFirst(15).once('value');
+            const snapshot = await db.ref('leaderboard_avg_time').orderByChild('averageTotalTime').limitToFirst(100).once('value');
             displayLeaderboard(snapshot, container, 'averageTotalTime', 'сек', true);
         } catch (error) {
             console.error(error);
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!container) return;
         try {
             // ЛИМИТ 15 (limitToLast, так как чем больше, тем лучше)
-            const snapshot = await db.ref('leaderboard_parts_count').orderByChild('totalPartsCaught').limitToLast(15).once('value');
+            const snapshot = await db.ref('leaderboard_parts_count').orderByChild('totalPartsCaught').limitToLast(100).once('value');
             displayLeaderboard(snapshot, container, 'totalPartsCaught', 'шт', false);
         } catch (error) {
             console.error(error);
@@ -450,7 +450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // 3. ЛИМИТ ТОП-15
-        const top15Scores = scores.slice(0, 15);
+        const top15Scores = scores.slice(0, 100);
 
         if (top15Scores.length === 0) {
             container.innerHTML = '<div class="leaderboard-empty"><div class="empty-message">Рекордов пока нет</div></div>';
