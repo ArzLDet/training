@@ -1207,6 +1207,12 @@ function updateUserInterface() {
         }
     });
 
+    function isCatchInteractionTarget(event) {
+        const target = event && event.target;
+        if (!target || typeof target.closest !== 'function') return false;
+        return Boolean(target.closest('.part-slot, .slot-action-btn, button, input, select, textarea, a, [role="button"]'));
+    }
+
     document.addEventListener('mousedown', (e) => {
         if (e.button === 2) { // ПКМ
             if (isRecordingKey) {
@@ -1219,6 +1225,7 @@ function updateUserInterface() {
             }
             if (userSettings.catchKey === 'RMB') {
                 e.preventDefault();
+                if (isCatchingMode && isCatchInteractionTarget(e)) return;
                 if (!guardHumanInput(e, 'catch-rmb')) return;
                 activateCatchingMode();
             }
@@ -2987,6 +2994,7 @@ function abortCatchingSession(silent = false) {
 
         if (event.key.toLowerCase() === userSettings.catchKey.toLowerCase()) {
             event.preventDefault();
+            if (event.repeat) return;
             if (!guardHumanInput(event, 'catch-key')) return;
             activateCatchingMode();
             return;
