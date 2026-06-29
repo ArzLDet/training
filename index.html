@@ -14,16 +14,39 @@
     <div class="main-app-frame"> 
         
         <div class="top-left-controls">
-            <button class="about-btn" onclick="window.location.href = 'about.html'">
-                О нас
+            <button class="about-btn top-icon-btn" onclick="window.location.href = 'about.html'" title="О нас" aria-label="О нас">
+                <span class="top-icon">i</span>
+                <span class="top-label">О нас</span>
             </button>
             
-<button class="comp-btn" onclick="openCompModal()" title="Соревнования">
-    🏆
-</button>
+            <button class="comp-btn top-icon-btn" onclick="openCompModal()" title="Соревнования" aria-label="Соревнования">
+                <span class="top-icon" aria-hidden="true">
+                    <svg class="ui-icon" viewBox="0 0 24 24">
+                        <path d="M8 21h8"></path>
+                        <path d="M12 17v4"></path>
+                        <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z"></path>
+                        <path d="M5 5H3v2a4 4 0 0 0 4 4"></path>
+                        <path d="M19 5h2v2a4 4 0 0 1-4 4"></path>
+                    </svg>
+                </span>
+                <span class="top-label">Турнир</span>
+            </button>
 
-            <button class="settings-btn" onclick="openSettings()">
-                ⚙️
+            <button class="settings-btn top-icon-btn" onclick="openSettings()" title="Настройки" aria-label="Настройки">
+                <span class="top-icon" aria-hidden="true">
+                    <svg class="ui-icon" viewBox="0 0 24 24">
+                        <path d="M4 7h10"></path>
+                        <path d="M18 7h2"></path>
+                        <path d="M16 5v4"></path>
+                        <path d="M4 17h2"></path>
+                        <path d="M10 17h10"></path>
+                        <path d="M8 15v4"></path>
+                        <path d="M4 12h4"></path>
+                        <path d="M12 12h8"></path>
+                        <path d="M10 10v4"></path>
+                    </svg>
+                </span>
+                <span class="top-label">Настройки</span>
             </button>
         </div>
 
@@ -44,15 +67,28 @@
         </div>
         
         <div class="categories" role="tablist">
-            <button class="category-btn active" role="tab" aria-selected="true">Двигатель</button>
-            <button class="category-btn" role="tab" aria-selected="false">Трансмиссия</button>
-            <button class="category-btn" role="tab" aria-selected="false">Шасси</button>
-            <button class="category-btn" role="tab" aria-selected="false">Информация</button>
-            <button class="category-btn" role="tab" aria-selected="false">Таблица лидеров</button>
+            <button class="category-btn active has-category-icon" role="tab" aria-selected="true" data-category-name="Двигатель">
+                <span class="category-icon category-icon-engine" aria-hidden="true"></span>
+                <span class="category-label">Двигатель</span>
+            </button>
+            <button class="category-btn has-category-icon" role="tab" aria-selected="false" data-category-name="Трансмиссия">
+                <span class="category-icon category-icon-transmission" aria-hidden="true"></span>
+                <span class="category-label">Трансмиссия</span>
+            </button>
+            <button class="category-btn has-category-icon" role="tab" aria-selected="false" data-category-name="Шасси">
+                <span class="category-icon category-icon-chassis" aria-hidden="true"></span>
+                <span class="category-label">Шасси</span>
+            </button>
+            <button class="category-btn" role="tab" aria-selected="false" data-category-name="Информация">Информация</button>
+            <button class="category-btn" role="tab" aria-selected="false" data-category-name="Таблица лидеров">Таблица лидеров</button>
         </div>
         
         <button class="counter-button">
-            <span class="counter-number">0</span>
+            <span class="counter-number" aria-hidden="true">
+                <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M6.2 6h14.6l-1.7 8.2a2.1 2.1 0 0 1-2.1 1.7H9.2a2.1 2.1 0 0 1-2.1-1.8L5.8 4.8H3V3h4.3l.4 3zm2.5 8h8.1l1.1-6.1H8l.7 6.1zM9.4 21a1.7 1.7 0 1 1 0-3.4 1.7 1.7 0 0 1 0 3.4zm7.9 0a1.7 1.7 0 1 1 0-3.4 1.7 1.7 0 0 1 0 3.4z"/>
+                </svg>
+            </span>
             <span class="counter-badge">0</span>
         </button>
         
@@ -534,6 +570,13 @@
                 </div>
 
             <div id="row-leaderboard" class="parts-row">
+                <div class="leaderboard-hero">
+                    <div>
+                        <span class="leaderboard-kicker">GLOBAL RANKING</span>
+                        <strong>Топ игроков</strong>
+                    </div>
+                </div>
+
                 <div class="leaderboard-tabs">
                     <button class="leaderboard-tab active" data-category="best-time">Лучшее время</button>
                     <button class="leaderboard-tab" data-category="avg-time">Среднее время</button>
@@ -571,12 +614,17 @@
         </div>
         
         <div class="footer-bar">
-            <div class="list-nav">
-                <button class="nav-arrow left">‹</button>
-                <span class="list-text">Листать</span>
-                <button class="nav-arrow right">›</button>
+            <div class="list-nav" aria-label="Листать детали">
+                <div class="nav-arrow-pair">
+                    <button class="nav-arrow left" type="button" aria-label="Назад">‹</button>
+                    <button class="nav-arrow right" type="button" aria-label="Вперед">›</button>
+                </div>
+                <span class="footer-hint-label list-text">Листать</span>
             </div>
-            <button class="enter-button">Enter | Добавить в корзину / выбрать</button>
+            <button class="footer-action enter-button" type="button">
+                <span class="keycap">Enter</span>
+                <span class="footer-hint-label">Добавить в корзину / выбрать</span>
+            </button>
         </div>
 
         <div id="cartModal" class="cart-modal">
@@ -601,65 +649,314 @@
             </div>
         </div>
 
+        <div id="partStatsPopup" class="part-stats-popup" aria-hidden="true">
+            <div class="part-stats-window" role="dialog" aria-modal="true" aria-labelledby="partStatsTitle">
+                <button class="part-stats-close" type="button" aria-label="Закрыть">&times;</button>
+                <div class="part-stats-header">
+                    <div>
+                        <div class="part-stats-kicker">Прогресс детали</div>
+                        <div class="part-stats-title" id="partStatsTitle">Коленвал</div>
+                    </div>
+                    <div class="part-stats-header-actions">
+                        <button class="part-training-btn" id="partTrainingBtn" type="button">Тренировка</button>
+                    </div>
+                </div>
+                <div class="part-stats-metrics">
+                    <div class="part-stats-metric">
+                        <span>Рекорд</span>
+                        <strong id="partStatsBest">0 сек</strong>
+                    </div>
+                    <div class="part-stats-metric">
+                        <span>Среднее</span>
+                        <strong id="partStatsAverage">0 сек</strong>
+                    </div>
+                    <div class="part-stats-metric">
+                        <span>Последняя</span>
+                        <strong id="partStatsLast">0 сек</strong>
+                    </div>
+                </div>
+                <div class="part-stats-chart" id="partStatsChart"></div>
+                <div class="part-training-setup" id="partTrainingSetup" aria-hidden="true">
+                    <div class="part-training-card">
+                        <div class="part-training-card-title">Тренировка</div>
+                        <div class="part-training-card-subtitle" id="partTrainingSetupName">Коленвал</div>
+                        <label class="part-training-field">
+                            <span>Количество раундов</span>
+                            <input id="partTrainingRounds" type="number" min="1" max="50" value="10">
+                        </label>
+                        <label class="part-training-field">
+                            <span>Таймер между раундами</span>
+                            <input id="partTrainingDelay" type="number" min="0" max="30" value="3">
+                        </label>
+                        <div class="part-training-actions">
+                            <button class="part-training-start" id="partTrainingStartBtn" type="button">Начать</button>
+                            <button class="part-training-cancel" id="partTrainingCancelBtn" type="button">Отмена</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="part-training-status" id="partTrainingStatus" hidden>
+            <div>
+                <strong id="partTrainingStatusTitle">Тренировка</strong>
+                <span id="partTrainingStatusMeta">Раунд 1 из 10</span>
+            </div>
+            <button id="partTrainingStopBtn" type="button">Стоп</button>
+        </div>
+
         <div id="settingsModal" class="settings-modal">
-            <div class="settings-content-framed">
-                <div class="settings-header">
-                    <div class="settings-title">Настройки</div>
-                    <button class="close-settings-btn">&times;</button>
+            <div class="settings-content-framed settings-panel-v2">
+                <div class="settings-header settings-header-v2">
+                    <div>
+                        <div class="settings-eyebrow">Панель игры</div>
+                        <div class="settings-title">Настройки</div>
+                    </div>
+                    <button class="close-settings-btn" title="Закрыть">&times;</button>
                 </div>
 
-                <div class="settings-list-framed">
-                    
-                    <div id="profile-settings-block" class="info-frame settings-frame" style="display: none;">
-                        <div class="settings-icon">👤</div>
-                        <div class="info-stats">
-                            <div class="info-name">Профиль</div>
-                            
-                            <div style="margin-top: 5px; width: 100%;">
-                                <span class="info-stat-label">Никнейм:</span>
-                                <input type="text" id="profile-nick" class="settings-select-inline" placeholder="Ваш ник" maxlength="15">
-                            </div>
-<div style="margin-top: 8px; width: 100%;">
-        <span class="info-stat-label">Сервер:</span>
-        <input type="number" id="profile-server" class="settings-select-inline" placeholder="№" min="1" max="30">
-    </div>
+                <div class="settings-shell">
+                    <aside class="settings-tabs-v2" aria-label="Разделы настроек">
+                        <button class="settings-tab-v2 active" type="button" data-settings-tab="profile">
+                            <span class="settings-tab-icon" aria-hidden="true">
+                                <svg class="ui-icon" viewBox="0 0 24 24">
+                                    <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+                                    <path d="M4 20a8 8 0 0 1 16 0"></path>
+                                </svg>
+                            </span> Профиль
+                        </button>
+                        <button class="settings-tab-v2" type="button" data-settings-tab="controls">
+                            <span class="settings-tab-icon" aria-hidden="true">
+                                <svg class="ui-icon" viewBox="0 0 24 24">
+                                    <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                                    <path d="M7 9h.01"></path>
+                                    <path d="M11 9h.01"></path>
+                                    <path d="M15 9h.01"></path>
+                                    <path d="M7 13h10"></path>
+                                    <path d="M7 17h4"></path>
+                                </svg>
+                            </span> Управление
+                        </button>
+                        <button class="settings-tab-v2" type="button" data-settings-tab="visual">
+                            <span class="settings-tab-icon" aria-hidden="true">
+                                <svg class="ui-icon" viewBox="0 0 24 24">
+                                    <path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z"></path>
+                                    <path d="M19 15l.7 2.3L22 18l-2.3.7L19 22l-.7-3.3L16 18l2.3-.7L19 15Z"></path>
+                                </svg>
+                            </span> Вид
+                        </button>
+                        <button class="settings-tab-v2" type="button" data-settings-tab="security">
+                            <span class="settings-tab-icon" aria-hidden="true">
+                                <svg class="ui-icon" viewBox="0 0 24 24">
+                                    <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3Z"></path>
+                                    <path d="M9 12l2 2 4-4"></path>
+                                </svg>
+                            </span> Защита
+                        </button>
+                        <button class="settings-tab-v2" type="button" data-settings-tab="experimental">
+                            <span class="settings-tab-icon" aria-hidden="true">
+                                <svg class="ui-icon" viewBox="0 0 24 24">
+                                    <path d="M9 3h6"></path>
+                                    <path d="M10 3v5l-5 9a3 3 0 0 0 2.6 4h8.8a3 3 0 0 0 2.6-4l-5-9V3"></path>
+                                    <path d="M8 14h8"></path>
+                                </svg>
+                            </span> Эксперимент
+                        </button>
+                    </aside>
 
-                            <div class="settings-action-row">
-                                <button onclick="saveProfile()" class="settings-action-btn">СОХРАНИТЬ</button>
+                    <div class="settings-list-framed settings-pages-v2">
+                        <section class="settings-page-v2 active" data-settings-page="profile">
+                            <div class="settings-section-title">Аккаунт</div>
+                            <div id="profile-settings-block" class="info-frame settings-frame settings-card-v2" style="display: none;">
+                                <div class="settings-icon" aria-hidden="true">
+                                    <svg class="ui-icon" viewBox="0 0 24 24">
+                                        <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+                                        <path d="M4 20a8 8 0 0 1 16 0"></path>
+                                    </svg>
+                                </div>
+                                <div class="info-stats">
+                                    <div class="info-name">Профиль игрока</div>
+                                    <label class="settings-field">
+                                        <span class="info-stat-label">Никнейм</span>
+                                        <input type="text" id="profile-nick" class="settings-select-inline" placeholder="Ваш ник" maxlength="15">
+                                    </label>
+                                    <label class="settings-field">
+                                        <span class="info-stat-label">Сервер</span>
+                                        <input type="number" id="profile-server" class="settings-select-inline" placeholder="№" min="1" max="32">
+                                    </label>
+                                    <div class="settings-action-row">
+                                        <button onclick="saveProfile()" class="settings-action-btn">Сохранить</button>
+                                    </div>
+                                    <div id="profile-status" class="settings-status-line"></div>
+                                </div>
                             </div>
-                            
-                            <div id="profile-status" style="font-size: 10px; margin-top: 5px; min-height: 5px; color: #888; text-align: center;"></div>
-                        </div>
-                    </div>
-                    
-                    <div class="info-frame settings-frame">
-                        <div class="settings-icon">⌨️</div>
-                        <div class="info-stats">
-                            <div class="info-name">Клавиша ловли</div>
-                            <div class="info-stat-label">Текущая: <span id="currentKeyDisplay" style="color: #fff; font-weight: bold;">H</span></div>
-                            <div class="settings-action-row">
-                                <button id="recordKeyBtn" class="settings-action-btn">Назначить клавишу</button>
+                            <div class="settings-note-card">
+                                Войди в аккаунт, чтобы ник и сервер попали в таблицу лидеров.
                             </div>
-                        </div>
-                    </div>
+                        </section>
 
-                    <div class="info-frame settings-frame">
-                        <div class="settings-icon">🖼️</div>
-                        <div class="info-stats">
-                            <div class="info-name">Задний фон</div>
-                            <div class="info-stat-line">
-                                <select id="bgSelect" class="settings-select-inline">
-                                    <option value="black">Черный (Black)</option>
-                                    <option value="custom">Свой (Загрузить)</option>
-                                </select>
+                        <section class="settings-page-v2" data-settings-page="controls">
+                            <div class="settings-section-title">Управление</div>
+                            <div class="info-frame settings-frame settings-card-v2">
+                                <div class="settings-icon" aria-hidden="true">
+                                    <svg class="ui-icon" viewBox="0 0 24 24">
+                                        <rect x="3" y="5" width="18" height="14" rx="2"></rect>
+                                        <path d="M7 9h.01"></path>
+                                        <path d="M11 9h.01"></path>
+                                        <path d="M15 9h.01"></path>
+                                        <path d="M7 13h10"></path>
+                                        <path d="M7 17h4"></path>
+                                    </svg>
+                                </div>
+                                <div class="info-stats">
+                                    <div class="info-name">Клавиша ловли</div>
+                                    <div class="info-stat-label">Текущая: <span id="currentKeyDisplay" class="settings-hotkey-pill">H</span></div>
+                                    <div class="settings-action-row">
+                                        <button id="recordKeyBtn" class="settings-action-btn">Назначить клавишу</button>
+                                    </div>
+                                </div>
                             </div>
-                            <div id="customBgUploadArea" class="settings-upload-area" style="display: none;">
-                                <input type="file" id="bgFileInput" accept="image/*" class="custom-file-input">
-                                <div class="info-stat-label small">Картинка сохранится в браузере</div>
+                            <div class="settings-grid-mini">
+                                <div class="settings-mini-card">
+                                    <span>Enter</span>
+                                    <small>добавить выбранную деталь</small>
+                                </div>
+                                <div class="settings-mini-card">
+                                    <span>← / →</span>
+                                    <small>переключить слот</small>
+                                </div>
                             </div>
-                        </div>
-                    </div>
+                        </section>
 
+                        <section class="settings-page-v2" data-settings-page="visual">
+                            <div class="settings-section-title">Внешний вид</div>
+                            <div class="info-frame settings-frame settings-card-v2">
+                                <div class="settings-icon" aria-hidden="true">
+                                    <svg class="ui-icon" viewBox="0 0 24 24">
+                                        <path d="M12 3l1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z"></path>
+                                        <path d="M19 15l.7 2.3L22 18l-2.3.7L19 22l-.7-3.3L16 18l2.3-.7L19 15Z"></path>
+                                    </svg>
+                                </div>
+                                <div class="info-stats">
+                                    <div class="info-name">Стиль интерфейса</div>
+                                    <label class="settings-field">
+                                        <span class="info-stat-label">Фон</span>
+                                        <select id="bgSelect" class="settings-select-inline">
+                                            <option value="black">Черный</option>
+                                            <option value="custom">Свой фон</option>
+                                        </select>
+                                    </label>
+                                    <label class="settings-field">
+                                        <span class="info-stat-label">Акцент</span>
+                                        <select id="accentSelect" class="settings-select-inline">
+                                            <option value="#2AABEE">Голубой</option>
+                                            <option value="#34C759">Зеленый</option>
+                                            <option value="#FFD166">Золото</option>
+                                            <option value="#FF453A">Красный</option>
+                                        </select>
+                                    </label>
+                                    <label class="settings-field">
+                                        <span class="info-stat-label">Плотность</span>
+                                        <select id="densitySelect" class="settings-select-inline">
+                                            <option value="comfortable">Комфортная</option>
+                                            <option value="compact">Компактная</option>
+                                        </select>
+                                    </label>
+                                    <label class="settings-toggle-row">
+                                        <input type="checkbox" id="effectsToggle" checked>
+                                        <span>Анимации и мягкие эффекты</span>
+                                    </label>
+                                    <div id="customBgUploadArea" class="settings-upload-area" style="display: none;">
+                                        <input type="file" id="bgFileInput" accept="image/*,.gif" class="custom-file-input">
+                                        <div class="info-stat-label small">PNG, JPG или GIF. Большие GIF могут работать только до перезагрузки страницы.</div>
+                                        <div id="bgUploadStatus" class="info-stat-label small"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="settings-page-v2" data-settings-page="security">
+                            <div class="settings-section-title">Анти-AHK</div>
+                            <div class="info-frame settings-frame settings-card-v2 security-card-v2">
+                                <div class="settings-icon" aria-hidden="true">
+                                    <svg class="ui-icon" viewBox="0 0 24 24">
+                                        <path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6l7-3Z"></path>
+                                        <path d="M9 12l2 2 4-4"></path>
+                                    </svg>
+                                </div>
+                                <div class="info-stats">
+                                    <div class="info-name">Защита от макросов</div>
+                                    <label class="settings-field">
+                                        <span class="info-stat-label">Режим</span>
+                                        <select id="antiAhkSelect" class="settings-select-inline">
+                                            <option value="standard">Стандарт</option>
+                                            <option value="strict">Строгий</option>
+                                            <option value="off">Выключено</option>
+                                        </select>
+                                    </label>
+                                    <div class="settings-security-list">
+                                        <span>Блок синтетических событий</span>
+                                        <span>Проверка ритма нажатий</span>
+                                        <span>Сброс подозрительной сессии</span>
+                                    </div>
+                                    <div id="antiAhkStatus" class="settings-status-line">Защита активна</div>
+                                </div>
+                            </div>
+                            <button id="resetSettingsBtn" class="settings-action-btn settings-secondary-action" type="button">Сбросить интерфейс</button>
+                        </section>
+
+                        <section class="settings-page-v2" data-settings-page="experimental">
+                            <div class="settings-section-title">Экспериментальные настройки</div>
+                            <div class="info-frame settings-frame settings-card-v2 ping-card-v2">
+                                <div class="settings-icon ping-signal-icon" aria-hidden="true">
+                                    <img class="settings-icon-img ping-icon-img" src="images/settings-ping-worldwide.png" alt="">
+                                </div>
+                                <div class="info-stats">
+                                    <div class="info-name">Настройка пинга</div>
+                                    <label class="settings-toggle-row">
+                                        <input type="checkbox" id="pingSimulationToggle">
+                                        <span>Симуляция задержки действий</span>
+                                    </label>
+                                    <label class="settings-field">
+                                        <span class="info-stat-label">Пинг</span>
+                                        <input type="range" id="pingSimulationRange" class="settings-range" min="0" max="350" step="10" value="80">
+                                    </label>
+                                    <div class="ping-readout">
+                                        <strong id="pingSimulationValue">80 мс</strong>
+                                        <small id="pingSimulationHint">Выключено: игра идет без искусственной задержки.</small>
+                                    </div>
+                                    <label class="settings-toggle-row">
+                                        <input type="checkbox" id="pingJitterToggle" checked>
+                                        <span>Джиттер: немного плавающая задержка</span>
+                                    </label>
+                                </div>
+                                <div class="settings-grid-mini"></div>
+                            </div>
+                            <div class="info-frame settings-frame settings-card-v2 drop-card-v2">
+                                <div class="settings-icon part-turbo-icon" aria-hidden="true">
+                                    <img class="settings-icon-img turbo-icon-img" src="images/settings-turbo-reference.png" alt="">
+                                </div>
+                                <div class="info-stats">
+                                    <div class="info-name">Настройка деталей</div>
+                                    <label class="settings-toggle-row">
+                                        <input type="checkbox" id="improvPartsToggle">
+                                        <span>improv детали</span>
+                                    </label>
+                                    <label class="settings-toggle-row">
+                                        <input type="checkbox" id="sportPartsToggle">
+                                        <span>sport детали</span>
+                                    </label>
+                                    <label class="settings-toggle-row locked-toggle">
+                                        <input type="checkbox" id="sportPlusPartsToggle" checked disabled>
+                                        <span>sport+ детали</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="settings-note-card">
+                                Без дополнительных режимов обычная ловля и тренировка дают только sport+ детали.
+                            </div>
+                        </section>
+                    </div>
                 </div>
             </div>
         </div>
@@ -706,12 +1003,12 @@
         </div>
         
       <div id="compModal" class="settings-modal">
-    <div class="settings-content-framed adaptive-black" style="width: 700px; height: 600px; display: flex; flex-direction: column; position: relative;">
+    <div class="settings-content-framed adaptive-black comp-panel-v2" style="width: 700px; height: 600px; display: flex; flex-direction: column; position: relative;">
         
-    <div id="createRoomOverlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #171923; z-index: 999; flex-direction: column; align-items: center; justify-content: center;">
-    <h3 style="color: white; margin-bottom: 20px; font-size: 24px;">Настройки комнаты</h3>
+    <div id="createRoomOverlay" class="dark-overlay-panel create-room-overlay" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #171923; z-index: 999; flex-direction: column; align-items: center; justify-content: center;">
+    <h3 class="create-room-title" style="color: white; margin-bottom: 20px; font-size: 24px;">Настройки комнаты</h3>
     
-    <div class="settings-list-framed" style="width: 400px; background: transparent;">
+    <div class="settings-list-framed create-room-form" style="width: 400px; background: transparent;">
         
         <div class="info-frame settings-frame">
             <div class="info-stats">
@@ -748,8 +1045,8 @@
                 <div class="info-name">Доступ</div>
                 <div class="info-stat-line">
                     <select id="newRoomPrivacy" class="settings-select-inline">
-                        <option value="public">🔓 Открытая</option>
-                        <option value="private">🔒 Закрытая</option>
+                        <option value="public">Открытая</option>
+                        <option value="private">Закрытая</option>
                     </select>
                 </div>
             </div>
@@ -764,35 +1061,39 @@
 </div>
 
         <div class="settings-header">
-            <div class="settings-title">🏆 Соревнования</div>
+            <div class="settings-title">Соревнования</div>
             <button class="close-settings-btn" onclick="closeCompModal()">&times;</button>
+        </div>
+
+        <div class="comp-mode-tabs" role="tablist" aria-label="Разделы соревнований">
+            <button class="comp-mode-tab active" type="button" data-tab="rooms" onclick="switchCompTab('rooms')">Комнаты</button>
         </div>
 
         <div id="comp-tab-rooms" class="comp-tab-content active" style="flex: 1; overflow: hidden; display: flex; flex-direction: column; position: relative;">
             
             <div id="currentRoomPanel" style="display: none; flex: 1; flex-direction: column; padding: 20px;">
-                <div style="border: 1px solid #4CAF50; padding: 15px; border-radius: 8px; background: rgba(76, 175, 80, 0.05); height: 100%; display: flex; flex-direction: column;">
+                <div class="lobby-panel-framed" style="border: 1px solid #4CAF50; padding: 15px; border-radius: 8px; background: rgba(76, 175, 80, 0.05); height: 100%; display: flex; flex-direction: column;">
                     
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
+                    <div class="lobby-panel-head" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">
                         <div>
                             <h4 style="color: #4CAF50; margin: 0; font-size: 18px;">Комната игрока: <span id="lobbyHostName" style="color: white;">Загрузка...</span></h4>
-                            <div style="font-size: 11px; color: #888; margin-top: 5px;">Ожидаем игроков...</div>
+                            <div class="lobby-status-text" style="font-size: 11px; color: #888; margin-top: 5px;">Ожидаем игроков...</div>
                         </div>
-                        <button class="settings-action-btn" onclick="copyRoomLink()" style="width: auto; font-size: 12px; padding: 8px 15px; background: #2AABEE; color: white; border: none;">🔗 Скопировать ссылку</button>
+                        <button class="settings-action-btn copy-link-btn" onclick="copyRoomLink()" style="width: auto; font-size: 12px; padding: 8px 15px; background: #2AABEE; color: white; border: none;">Скопировать ссылку</button>
                     </div>
                     
                     <div id="roomPlayersList" class="room-players-grid" style="justify-content: center; margin: 30px 0; gap: 20px; flex: 1; align-items: center;"></div>
                     
                     <div class="room-actions" style="margin-top: auto; display: flex; flex-direction: column; gap: 10px; align-items: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
                         
-                        <button id="readyBtn" class="settings-action-btn" style="width: 250px; height: 50px; background: #333; font-size: 16px;" onclick="toggleReady()">⏳ Я ГОТОВ</button>
+                        <button id="readyBtn" class="settings-action-btn" style="width: 250px; height: 50px; background: #333; font-size: 16px;" onclick="toggleReady()">Я ГОТОВ</button>
 
                         <button id="startGameBtn" class="settings-action-btn" style="background: #4CAF50; color: white; border-color: #4CAF50; display: none; width: 250px; height: 50px; font-size: 18px; font-weight: bold; box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);" onclick="startCompGame()">НАЧАТЬ ИГРУ</button>
                         
                         <div id="waitingText" style="color: #888; font-size: 13px; margin-top: 5px; display: none;">Ждем готовности...</div>
 
                         <div style="margin-top: 15px;">
-                            <button class="settings-action-btn" style="background: rgba(244, 67, 54, 0.2); color: #ff6b6b; border-color: #f44336; width: 150px;" onclick="leaveRoom()">Выйти</button>
+                            <button class="settings-action-btn leave-room-btn" style="background: rgba(244, 67, 54, 0.2); color: #ff6b6b; border-color: #f44336; width: 150px;" onclick="leaveRoom()">Выйти</button>
                         </div>
                     </div>
                 </div>
@@ -801,7 +1102,7 @@
             <div id="roomsBrowserPanel" style="display: flex; flex-direction: column; height: 100%;">
                 <div id="lobbyControls" class="comp-controls" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(0,0,0,0.2);">
                     <div style="color: #ccc; font-size: 13px;">Активные лобби</div>
-                    <button class="settings-action-btn" onclick="openCreateOverlay()" style="width: auto; padding: 0 20px; background: #2AABEE; color: white; border-color: #2AABEE;">➕ Создать комнату</button>
+                    <button class="settings-action-btn" onclick="openCreateOverlay()" style="width: auto; padding: 0 20px; background: #2AABEE; color: white; border-color: #2AABEE;">Создать комнату</button>
                 </div>
 
                 <div id="publicRoomsBlock" style="padding: 0 20px; flex: 1; overflow: hidden; display: flex; flex-direction: column;">
@@ -826,7 +1127,7 @@
             <div id="compOverlayTimer" style="font-size: 80px; font-weight: bold;">10</div>
             <div id="compOverlayMessage" style="font-size: 20px; color: #ccc;">Приготовьтесь...</div>
         </div>
-    
+
     <script src="script.js"></script>
 <div id="playerStatsModal">
     <div class="stats-modal-content">
@@ -835,6 +1136,15 @@
                 <h2 id="statsPlayerName">Загрузка...</h2>
                 <span>Детальная статистика по всем запчастям</span>
             </div>
+            <div id="statsServerBadge" class="stats-server-badge" hidden>
+                <img id="statsServerFlag" class="stats-server-flag" src="" alt="">
+                <div class="stats-server-copy">
+                    <span id="statsServerLabel">Сервер</span>
+                    <strong id="statsServerName">—</strong>
+                </div>
+                <span id="statsRankPill" class="stats-rank-pill" hidden>TOP</span>
+            </div>
+
             <button class="close-stats" onclick="closePlayerStatsModal()">&times;</button>
         </div>
         <div id="statsGrid" class="stats-grid">

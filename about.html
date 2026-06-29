@@ -3,1040 +3,806 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>О проекте • Тренировка реакции</title>
+    <meta name="description" content="Краткий FAQ по тренажёру ловли деталей ARZldet.">
+    <title>О проекте и FAQ • ARZldet</title>
     <style>
-        /* === ПЕРЕМЕННЫЕ И ТЕМЫ === */
         :root {
-            /* Темная тема (по умолчанию) */
-            --bg-body: #0a0a0a;
-            --bg-card: #151515;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --border-color: #2a2a2a;
-            --accent-tg: #2AABEE;
-            --accent-donate: #FF5722;
-            /* Уменьшенный глоу-эффект */
-            --accent-glow: rgba(42, 171, 238, 0.1);
-            --footer-bg: #000000;
-            --tag-bg: rgba(255, 255, 255, 0.05);
-            --modal-overlay: rgba(0, 0, 0, 0.85);
-            --gradient-primary: linear-gradient(135deg, #2AABEE 0%, #1a78b8 100%);
-            --gradient-accent: linear-gradient(135deg, #FF5722 0%, #c0410e 100%);
-            /* Уменьшенные тени */
-            --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-            --hover-shadow: 0 6px 20px rgba(42, 171, 238, 0.15);
+            color-scheme: dark;
+            --bg: #0b0d10;
+            --surface: #12151a;
+            --surface-2: #181c22;
+            --text: #f5f7fa;
+            --muted: #9aa3ad;
+            --line: #2a3038;
+            --accent: #2aabee;
+            --accent-soft: rgba(42, 171, 238, 0.12);
+            --warm: #ff6a3d;
+            --shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
         }
 
-        /* Светлая тема */
         @media (prefers-color-scheme: light) {
             :root {
-                --bg-body: #f8f9fa;
-                --bg-card: #ffffff;
-                --text-primary: #1a1a1a;
-                --text-secondary: #666666;
-                --border-color: #e0e0e0;
-                --footer-bg: #f0f0f0;
-                --tag-bg: rgba(0, 0, 0, 0.04);
-                --modal-overlay: rgba(0, 0, 0, 0.3);
-                /* Ещё меньше глоу в светлой теме */
-                --accent-glow: rgba(42, 171, 238, 0.05);
-                --card-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
-                --hover-shadow: 0 6px 20px rgba(42, 171, 238, 0.08);
+                color-scheme: light;
+                --bg: #f5f7f9;
+                --surface: #ffffff;
+                --surface-2: #f2f4f7;
+                --text: #16191d;
+                --muted: #66707b;
+                --line: #dfe4e9;
+                --accent-soft: rgba(42, 171, 238, 0.09);
+                --shadow: 0 24px 70px rgba(35, 45, 55, 0.09);
             }
-        }
-
-        /* === БАЗОВЫЕ СТИЛИ === */
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-body);
-            color: var(--text-primary);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-            line-height: 1.6;
         }
 
         * {
             box-sizing: border-box;
         }
 
-        a { 
-            text-decoration: none; 
-            color: inherit;
-            transition: all 0.3s ease;
+        html {
+            scroll-behavior: smooth;
         }
 
-        /* === СКРОЛЛБАР === */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--bg-card);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: var(--border-color);
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-tg);
-        }
-
-        /* === HEADER === */
-        .header {
-            width: 100%;
-            max-width: 1200px;
-            padding: 40px 20px 20px;
-            margin: 0 auto;
+        body {
+            margin: 0;
+            min-width: 320px;
             position: relative;
+            isolation: isolate;
+            overflow-x: hidden;
+            background:
+                linear-gradient(180deg, var(--accent-soft) 0, transparent 360px),
+                var(--bg);
+            color: var(--text);
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            line-height: 1.5;
         }
 
-        .header::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 20px;
-            right: 20px;
-            height: 1px;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                var(--border-color) 50%, 
-                transparent 100%);
+        a {
+            color: inherit;
+            text-decoration: none;
         }
 
-        .btn-back {
+        img {
+            display: block;
+            max-width: 100%;
+        }
+
+        .shell {
+            width: min(1180px, calc(100% - 40px));
+            margin-inline: auto;
+        }
+
+        .topbar {
+            padding: 24px 0;
+        }
+
+        .back-link {
             display: inline-flex;
             align-items: center;
-            gap: 12px;
-            color: var(--text-secondary);
-            font-size: 15px;
-            font-weight: 500;
-            padding: 10px 16px;
-            border-radius: 12px;
-            background: var(--tag-bg);
-            border: 1px solid transparent;
-            transition: all 0.3s ease;
+            gap: 10px;
+            min-height: 44px;
+            padding: 0 16px;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            background: var(--surface);
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 700;
+            transition: border-color 160ms ease, color 160ms ease, transform 160ms ease;
         }
 
-        .btn-back:hover {
-            color: var(--text-primary);
-            border-color: var(--border-color);
-            transform: translateX(-4px);
+        .back-link:hover {
+            border-color: var(--accent);
+            color: var(--text);
+            transform: translateX(-2px);
         }
 
-        /* === КОНТЕНТ === */
-        .content-container {
-            width: 100%;
-            max-width: 1200px;
-            padding: 40px 20px;
-            margin: 0 auto;
-            flex-grow: 1;
+        .back-link svg {
+            width: 17px;
+            height: 17px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(270px, 0.6fr);
+            gap: 18px;
+            padding: 28px 0 18px;
+        }
+
+        .hero-copy,
+        .quick-start {
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: color-mix(in srgb, var(--surface) 94%, transparent);
+            box-shadow: var(--shadow);
+            animation: revealUp 700ms cubic-bezier(.2, .8, .2, 1) both;
+        }
+
+        .hero-copy {
+            min-height: 390px;
+            padding: clamp(32px, 6vw, 68px);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+        }
+
+        .hero-copy > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .eyebrow,
+        .section-label {
+            margin: 0;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 900;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
         }
 
         h1 {
-            font-size: 52px;
-            font-weight: 800;
-            margin-bottom: 40px;
-            letter-spacing: -0.03em;
-            background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            max-width: 740px;
+            margin: 14px 0 16px;
+            font-size: clamp(44px, 7vw, 76px);
+            line-height: 0.98;
+            letter-spacing: -0.055em;
         }
 
-        .text-section {
-            margin-bottom: 48px;
-            max-width: 800px;
+        .hero-copy > p:not(.eyebrow) {
+            max-width: 620px;
+            margin: 0;
+            color: var(--muted);
+            font-size: clamp(16px, 2vw, 19px);
         }
 
-        .text-section h2 {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 20px;
-            color: var(--text-primary);
-            position: relative;
-            display: inline-block;
-        }
-
-        .text-section h2::after {
-            content: '';
-            position: absolute;
-            bottom: -6px;
-            left: 0;
-            width: 40px;
-            height: 3px;
-            background: var(--accent-tg);
-            border-radius: 2px;
-        }
-
-        .text-section p {
-            font-size: 17px;
-            line-height: 1.7;
-            color: var(--text-secondary);
-            margin: 0 0 16px 0;
-        }
-
-        /* Упрощённый эффект для strong текста */
-        .text-section strong {
-            color: var(--text-primary);
-            font-weight: 600;
-            background: transparent;
-            padding: 0;
-            border-radius: 0;
-        }
-
-        /* === БЛОК КОМАНДЫ (CREDITS) === */
-        .credits-container {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 40px;
-            margin: 60px 0;
-            position: relative;
-            overflow: hidden;
-            box-shadow: var(--card-shadow);
-        }
-
-        .credits-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                var(--accent-tg) 50%, 
-                transparent 100%);
-        }
-
-        .credit-group-title {
-            font-size: 14px;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .credit-group-title::before {
-            content: '';
-            width: 20px;
-            height: 1px;
-            background: var(--text-secondary);
-        }
-
-        /* Создатель */
-        .creator-row {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            cursor: pointer;
-            padding: 20px;
-            border-radius: 16px;
-            background: var(--tag-bg);
-            border: 1px solid transparent;
-            transition: all 0.3s ease;
-            margin-bottom: 30px;
-        }
-
-        .creator-row:hover {
-            border-color: var(--accent-tg);
-            transform: translateY(-2px);
-            box-shadow: var(--hover-shadow);
-        }
-
-        .creator-name {
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--text-primary);
-            letter-spacing: -0.02em;
-        }
-
-        .crown-icon {
-            font-size: 32px;
-            animation: float 3s ease-in-out infinite;
-            display: inline-block;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-8px) rotate(5deg); }
-        }
-
-        /* Помощники */
-        .helpers-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 12px;
-        }
-
-        .helper-tag {
-            background: var(--tag-bg);
-            padding: 16px 20px;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: 500;
-            border: 1px solid transparent;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* Упрощённый ховер для helper-тегов */
-        .helper-tag:hover {
-            border-color: var(--accent-tg);
-            background: var(--tag-bg);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* === МОДАЛЬНОЕ ОКНО ПРОФИЛЯ === */
-        .profile-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: var(--modal-overlay);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
+        .primary-link {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
-            opacity: 0;
-            transition: opacity 0.4s ease;
-        }
-
-        .profile-modal.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        .profile-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            width: 100%;
-            max-width: 480px;
-            border-radius: 24px;
-            padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            position: relative;
-            transform: translateY(20px) scale(0.98);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .profile-modal.active .profile-card {
-            transform: translateY(0) scale(1);
-        }
-
-        .close-modal {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: var(--tag-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            font-size: 20px;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            z-index: 2;
-        }
-
-        .close-modal:hover {
-            background: var(--accent-tg);
-            border-color: var(--accent-tg);
-            color: white;
-            transform: rotate(90deg);
-        }
-
-        .profile-header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .profile-nick {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            letter-spacing: -0.02em;
-        }
-
-        .profile-alias-label {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: var(--text-secondary);
-            letter-spacing: 0.8px;
-            margin-bottom: 4px;
-        }
-
-        /* Упрощённый профиль в модалке */
-        .profile-alias {
-            font-size: 16px;
-            color: var(--accent-tg);
-            font-weight: 600;
-            background: transparent;
-            padding: 0;
-            border-radius: 0;
-            display: inline-block;
-        }
-
-        .contribution-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .contribution-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-            font-size: 16px;
-            color: var(--text-primary);
-            line-height: 1.6;
-            padding: 12px;
-            border-radius: 12px;
-            background: var(--tag-bg);
-            border: 1px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        /* Упрощённый ховер для contribution */
-        .contribution-item:hover {
-            border-color: var(--accent-tg);
-            transform: translateX(2px);
-            background: var(--tag-bg);
-        }
-
-        .contribution-icon {
-            font-size: 20px;
-            min-width: 28px;
-            text-align: center;
-        }
-
-        /* === MEDIA SECTION === */
-        .media-footer {
-            width: 100%;
-            max-width: 1400px;
-            padding: 40px 20px 80px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
-            gap: 30px;
-            align-items: center;
-        }
-
-        @media (max-width: 1100px) {
-            .media-footer {
-                grid-template-columns: 1fr;
-                gap: 20px;
-                padding: 20px 20px 60px;
-            }
-        }
-
-        /* Упрощённые карточки действий */
-        .action-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            height: 180px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            box-shadow: none;
-        }
-
-        .action-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                currentColor 50%, 
-                transparent 100%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .action-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--hover-shadow);
-        }
-
-        .action-card:hover::before {
-            opacity: 1;
-        }
-
-        .action-card.tg:hover {
-            background: var(--gradient-primary);
-            border-color: var(--accent-tg);
-        }
-
-        .action-card.donate:hover {
-            background: var(--gradient-accent);
-            border-color: var(--accent-donate);
-        }
-
-        .icon {
-            font-size: 48px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .action-card:hover .icon {
-            transform: scale(1.1);
-        }
-
-        .card-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .card-desc {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        .action-card:hover * {
-            color: white !important;
-        }
-
-        /* Видео контейнер */
-        .video-container {
-            width: 100%;
-            aspect-ratio: 16/9;
-            border-radius: 20px;
-            overflow: hidden;
-            background: #000;
-            position: relative;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-            border: 1px solid var(--border-color);
-        }
-
-        .video-container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                var(--accent-tg) 50%, 
-                transparent 100%);
-            z-index: 1;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: block;
-        }
-
-        /* === FOOTER === */
-        .site-footer {
-            width: 100%;
-            background: var(--footer-bg);
-            padding: 40px 0;
-            margin-top: auto;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .footer-inner {
-            max-width: 1200px;
-            margin: 0 auto;
+            min-height: 48px;
+            margin-top: 28px;
             padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
+            border-radius: 10px;
+            background: var(--accent);
+            color: #fff;
+            font-weight: 850;
+            transition: filter 160ms ease, transform 160ms ease;
         }
 
-        .footer-left, .footer-right {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+        .primary-link:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
         }
 
-        .footer-right {
-            align-items: flex-end;
-        }
-
-        @media (max-width: 768px) {
-            .footer-inner {
-                flex-direction: column;
-                text-align: center;
-                gap: 30px;
-            }
-            
-            .footer-right {
-                align-items: center;
-            }
-        }
-
-        .copyright {
-            font-size: 14px;
-            color: var(--text-primary);
-            opacity: 0.9;
-        }
-
-        .footer-link {
-            color: var(--text-secondary);
-            font-size: 14px;
-            transition: all 0.3s ease;
-            position: relative;
-            padding-bottom: 2px;
-        }
-
-        .footer-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background: var(--accent-tg);
-            transition: width 0.3s ease;
-        }
-
-        .footer-link:hover {
-            color: var(--text-primary);
-        }
-
-        .footer-link:hover::after {
-            width: 100%;
-        }
-
-        /* === СЕКЦИИ С ФИЧАМИ === */
-        .features-grid {
+        .quick-start {
+            padding: 24px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            margin: 60px 0;
+            align-content: center;
+            gap: 10px;
+            animation-delay: 120ms;
         }
 
-        /* Упрощённые feature-карточки */
+        .quick-start h2 {
+            margin: 0 0 8px;
+            font-size: 19px;
+        }
+
+        .key-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            min-height: 64px;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--surface-2);
+            color: var(--muted);
+            font-size: 14px;
+            transition: color 180ms ease, border-color 180ms ease, transform 180ms ease, background 180ms ease;
+        }
+
+        .key-row:hover {
+            color: var(--text);
+            border-color: color-mix(in srgb, var(--accent) 48%, var(--line));
+            background: color-mix(in srgb, var(--accent-soft) 55%, var(--surface-2));
+            transform: translateX(4px);
+        }
+
+        kbd {
+            flex: 0 0 auto;
+            min-width: 42px;
+            padding: 7px 9px;
+            border: 1px solid var(--line);
+            border-bottom-width: 3px;
+            border-radius: 7px;
+            background: var(--surface);
+            color: var(--text);
+            font: 800 13px/1 Inter, sans-serif;
+            text-align: center;
+        }
+
+        .section {
+            padding: 72px 0 0;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-heading h2 {
+            margin: 7px 0 0;
+            font-size: clamp(30px, 4vw, 44px);
+            line-height: 1.05;
+            letter-spacing: -0.04em;
+        }
+
+        .section-note {
+            max-width: 390px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+            text-align: right;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+
         .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 30px;
-            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            min-height: 180px;
+            padding: 24px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--surface);
+            box-shadow: 0 14px 36px rgba(0, 0, 0, 0.06);
+            transition: transform 240ms cubic-bezier(.2, .8, .2, 1), border-color 240ms ease, box-shadow 240ms ease;
+            animation: revealUp 650ms cubic-bezier(.2, .8, .2, 1) both;
         }
 
-        .feature-card::before {
-            display: none; /* Убираем градиентный оверлей */
+        .feature-card:nth-child(2) {
+            animation-delay: 90ms;
+        }
+
+        .feature-card:nth-child(3) {
+            animation-delay: 180ms;
         }
 
         .feature-card:hover {
+            z-index: 1;
+            border-color: color-mix(in srgb, var(--text) 22%, var(--line));
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.1);
             transform: translateY(-4px);
-            border-color: var(--accent-tg);
-            box-shadow: var(--hover-shadow);
         }
 
         .feature-icon {
-            font-size: 32px;
-            margin-bottom: 20px;
-            display: inline-block;
-            transition: transform 0.3s ease;
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            margin-bottom: 28px;
+            border-radius: 10px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            transition: transform 220ms ease;
         }
 
         .feature-card:hover .feature-icon {
-            transform: scale(1.1);
+            transform: scale(1.05);
         }
 
-        .feature-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--text-primary);
-            position: relative;
-            z-index: 1;
+        .feature-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: none;
+            stroke: currentColor;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-width: 1.8;
         }
 
-        .feature-desc {
+        .feature-card h3 {
+            margin: 0 0 8px;
+            font-size: 19px;
+        }
+
+        .feature-card p {
+            margin: 0;
+            color: var(--muted);
             font-size: 15px;
-            color: var(--text-secondary);
-            line-height: 1.6;
-            position: relative;
-            z-index: 1;
         }
 
-        /* === КЛАВИАТУРНЫЕ СОЧЕТАНИЯ === */
-        .keyboard-shortcuts {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 40px;
-            margin: 60px 0;
+        .faq-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .faq-card {
             position: relative;
             overflow: hidden;
-            box-shadow: var(--card-shadow);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--surface);
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.08);
+            transition: transform 280ms cubic-bezier(.2, .8, .2, 1), border-color 280ms ease, box-shadow 280ms ease;
+            animation: revealUp 700ms cubic-bezier(.2, .8, .2, 1) both;
         }
 
-        .keyboard-shortcuts::before {
-            content: '';
+        .faq-card:nth-child(2) { animation-delay: 90ms; }
+        .faq-card:nth-child(3) { animation-delay: 180ms; }
+        .faq-card:nth-child(4) { animation-delay: 270ms; }
+
+        .faq-card:hover {
+            border-color: color-mix(in srgb, var(--text) 22%, var(--line));
+            box-shadow: 0 20px 42px rgba(0, 0, 0, 0.11);
+            transform: translateY(-4px);
+        }
+
+        .faq-media {
+            position: relative;
+            aspect-ratio: 8 / 5;
+            overflow: hidden;
+            border-bottom: 1px solid var(--line);
+            background: #08090a;
+        }
+
+        .faq-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 600ms cubic-bezier(.2, .8, .2, 1), filter 400ms ease;
+        }
+
+        .faq-card:hover .faq-media img {
+            filter: saturate(1.08) contrast(1.03);
+            transform: scale(1.035);
+        }
+
+        .faq-number {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, 
-                transparent 0%, 
-                var(--accent-tg) 50%, 
-                transparent 100%);
-        }
-
-        .shortcut-item {
-            display: flex;
-            justify-content: space-between;
+            top: 14px;
+            left: 14px;
+            display: inline-flex;
             align-items: center;
-            padding: 16px 0;
-            border-bottom: 1px solid var(--border-color);
-            transition: all 0.3s ease;
+            justify-content: center;
+            min-width: 42px;
+            height: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.24);
+            border-radius: 999px;
+            background: rgba(5, 7, 9, 0.78);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            backdrop-filter: blur(8px);
         }
 
-        .shortcut-item:last-child {
-            border-bottom: none;
+        .faq-copy {
+            padding: 22px 24px 25px;
         }
 
-        /* Упрощённые сочетания клавиш */
-        .shortcut-item:hover {
-            padding-left: 8px;
-            padding-right: 8px;
-            background: var(--tag-bg);
-            border-radius: 8px;
-            transform: translateX(2px);
+        .faq-copy h3 {
+            margin: 0 0 8px;
+            font-size: 21px;
+            letter-spacing: -0.02em;
         }
 
-        .shortcut-key {
-            background: var(--tag-bg);
-            padding: 8px 16px;
-            border-radius: 10px;
+        .faq-copy p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .team-panel {
+            display: grid;
+            grid-template-columns: 0.7fr 1.3fr;
+            gap: 28px;
+            padding: 30px;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: var(--surface);
+        }
+
+        .team-panel h2 {
+            margin: 7px 0 0;
+            font-size: 32px;
+            line-height: 1.05;
+        }
+
+        .team-list {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .team-member {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            min-height: 58px;
+            padding: 12px 14px;
+            border: 1px solid var(--line);
+            border-radius: 11px;
+            background: var(--surface-2);
+        }
+
+        .team-member strong {
+            overflow: hidden;
             font-size: 14px;
-            font-weight: 600;
-            font-family: 'Courier New', monospace;
-            border: 1px solid var(--border-color);
-            min-width: 60px;
-            text-align: center;
-            transition: all 0.3s ease;
+            text-overflow: ellipsis;
         }
 
-        .shortcut-item:hover .shortcut-key {
-            background: var(--tag-bg);
-            border-color: var(--accent-tg);
-            color: var(--accent-tg);
+        .team-member span {
+            flex: 0 0 auto;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
-        /* === АДАПТИВНОСТЬ === */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 40px;
+        .links-row {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            padding: 18px 0 72px;
+        }
+
+        .action-link {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-height: 92px;
+            padding: 20px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--surface);
+            transition: border-color 160ms ease, transform 160ms ease;
+        }
+
+        .action-link:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .action-icon {
+            display: grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 13px;
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-size: 22px;
+        }
+
+        .donate .action-icon {
+            background: color-mix(in srgb, var(--warm) 12%, transparent);
+            color: var(--warm);
+        }
+
+        .action-copy strong,
+        .action-copy span {
+            display: block;
+        }
+
+        .action-copy strong {
+            font-size: 17px;
+        }
+
+        .action-copy span {
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .site-footer {
+            border-top: 1px solid var(--line);
+            background: var(--surface);
+        }
+
+        .footer-inner {
+            min-height: 104px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        @keyframes revealUp {
+            from {
+                opacity: 0;
+                translate: 0 26px;
+                scale: 0.985;
             }
-            
-            .text-section h2 {
-                font-size: 24px;
+            to {
+                opacity: 1;
+                translate: 0 0;
+                scale: 1;
             }
-            
-            .creator-name {
-                font-size: 24px;
-            }
-            
-            .creator-row {
-                padding: 16px;
-            }
-            
-            .credits-container {
-                padding: 24px;
-            }
-            
-            .helpers-grid {
+        }
+
+        @media (max-width: 860px) {
+            .hero,
+            .team-panel {
                 grid-template-columns: 1fr;
             }
-            
-            .profile-card {
-                padding: 24px;
+
+            .hero-copy {
+                min-height: 340px;
             }
-            
-            .feature-card {
-                padding: 24px;
+
+            .quick-start {
+                grid-template-columns: repeat(3, 1fr);
             }
-            
-            .keyboard-shortcuts {
-                padding: 24px;
+
+            .quick-start h2 {
+                grid-column: 1 / -1;
+            }
+
+            .key-row {
+                align-items: flex-start;
+                flex-direction: column-reverse;
             }
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 700px) {
+            .feature-grid,
+            .faq-grid,
+            .links-row {
+                grid-template-columns: 1fr;
+            }
+
+            .section-heading {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .section-note {
+                text-align: left;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .shell {
+                width: min(100% - 24px, 1180px);
+            }
+
+            .topbar {
+                padding: 14px 0;
+            }
+
+            .hero {
+                padding-top: 10px;
+            }
+
+            .hero-copy,
+            .quick-start,
+            .team-panel {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            .hero-copy {
+                min-height: 320px;
+            }
+
             h1 {
-                font-size: 32px;
+                font-size: 42px;
             }
-            
-            .content-container {
-                padding: 20px 16px;
+
+            .quick-start {
+                grid-template-columns: 1fr;
             }
-            
-            .header {
-                padding: 24px 16px 16px;
+
+            .section {
+                padding-top: 54px;
             }
-            
-            .creator-name {
-                font-size: 20px;
+
+            .team-list {
+                grid-template-columns: 1fr;
             }
-            
-            .crown-icon {
-                font-size: 24px;
+
+            .footer-inner {
+                align-items: flex-start;
+                flex-direction: column;
+                padding: 24px 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto;
+            }
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
         }
     </style>
 </head>
 <body>
-
-    <header class="header">
-        <a href="index.html" class="btn-back">
-            <span>←</span> Вернуться назад
+    <header class="topbar shell">
+        <a href="index.html" class="back-link">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+            В тренажёр
         </a>
     </header>
 
-    <main class="content-container">
-        <h1>О проекте</h1>
-
-        <div class="text-section">
-            <p>
-            инструмент для тренировки реакции и запоминания расположения деталей. 
-            </p>
-        </div>
-
-        <div class="text-section">
-            <h2>Рекомендации по использованию</h2>
-            <p>
-                • Для лучшего погружения нажмите <strong>F11</strong> для полноэкранного режима<br>
-                • Все кнопки и интерфейс точно соответствуют реальному расположению в игре<br>
-                • Интерфейс автоматически масштабируется под ваше разрешение экрана
-            </p>
-        </div>
-
-        <div class="text-section">
-            <h2>Управление</h2>
-            <p>
-                • По умолчанию для запуска симуляции слета используется клавиша <strong>H</strong><br>
-                • Вы можете переназначить кнопку слета на любую удобную в <strong>Настройках</strong><br>
-            </p>
-        </div>
-
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
-                <div class="feature-title">Точное соответствие</div>
-                <div class="feature-desc">Все элементы интерфейса расположены точно так же, как в оригинальной игре для максимально реалистичной тренировки</div>
+    <main class="shell">
+        <section class="hero" aria-labelledby="page-title">
+            <div class="hero-copy">
+                <p class="eyebrow">ARZLDET TRAINER</p>
+                <h1 id="page-title">Тренажёр ловли деталей</h1>
+                <a href="index.html" class="primary-link">Начать тренировку</a>
             </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">⚙️</div>
-                <div class="feature-title">Гибкие настройки</div>
-                <div class="feature-desc">Настройте клавишу слета, фон интерфейса и другие параметры под свои предпочтения</div>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <div class="feature-title">Статистика прогресса</div>
-                <div class="feature-desc">Отслеживайте свои результаты: лучшее время, среднее время и количество успешных слетов</div>
-            </div>
-        </div>
 
-        <div class="keyboard-shortcuts">
-            <h2 style="margin-top: 0; margin-bottom: 30px;">Горячие клавиши</h2>
-            
-            <div class="shortcut-item">
-                <span>Запуск симуляции слета</span>
-                <span class="shortcut-key">H</span>
-            </div>
-            
-            <div class="shortcut-item">
-                <span>Перемещение между деталями</span>
-                <span class="shortcut-key">← →</span>
-            </div>
-            
-            <div class="shortcut-item">
-                <span>Добавить/удалить из корзины</span>
-                <span class="shortcut-key">Enter</span>
-            </div>
-        </div>
+            <aside class="quick-start" aria-label="Горячие клавиши">
+                <h2>Управление</h2>
+                <div class="key-row"><span>Запустить симуляцию</span><kbd>H</kbd></div>
+                <div class="key-row"><span>Выбрать деталь</span><kbd>← →</kbd></div>
+                <div class="key-row"><span>Добавить / убрать</span><kbd>Enter</kbd></div>
+            </aside>
+        </section>
 
-        <div class="credits-container">
-            <div class="credit-group">
-                <div class="credit-group-title">Creator</div>
-                <div class="creator-row" onclick="openProfile('sam')">
-                    <span class="crown-icon">👑</span>
-                    <span class="creator-name">Sam_Eferleah</span>
+        <section class="section" aria-labelledby="features-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-label">Тренировка</p>
+                    <h2 id="features-title">Основные возможности</h2>
                 </div>
             </div>
 
-            <div class="credit-group">
-                <div class="credit-group-title">Helpers</div>
-                <div class="helpers-grid">
-                    <div class="helper-tag" onclick="openProfile('carabas')">
-                        🤖 Carabas_Barabas
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><circle cx="12" cy="12" r="3"></circle><path d="M12 2v3M22 12h-3M12 22v-3M2 12h3"></path></svg>
                     </div>
-                    <div class="helper-tag" onclick="openProfile('morty')">
-                        👻 Morty_Grimes
+                    <h3>Симуляция слёта</h3>
+                    <p>Поймай две нужные детали как можно быстрее.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"></path></svg>
                     </div>
-                    <div class="helper-tag" onclick="openProfile('zibert')">
-                        🎨 Zibert_Mentality
+                    <h3>Точечная тренировка</h3>
+                    <p>Отрабатывай ловлю выбранной детали отдельно.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"></path><path d="M5 5H3v2a4 4 0 0 0 4 4M19 5h2v2a4 4 0 0 1-4 4"></path></svg>
                     </div>
+                    <h3>Рейтинг и статистика</h3>
+                    <p>Следи за временем и сравнивай результат с игроками.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section" id="faq" aria-labelledby="faq-title">
+            <div class="section-heading">
+                <div>
+                    <p class="section-label">FAQ</p>
+                    <h2 id="faq-title">Как пользоваться</h2>
                 </div>
             </div>
+
+            <div class="faq-grid">
+                <article class="faq-card">
+                    <div class="faq-media">
+                        <img src="images/faq/basic-training.gif" alt="Запуск основной тренировки и сбор деталей" loading="lazy">
+                        <span class="faq-number">01</span>
+                    </div>
+                    <div class="faq-copy">
+                        <h3>Как работает симуляция слёта?</h3>
+                        <p>Нажми H и поймай две указанные детали как можно быстрее. Стрелки меняют выбор, Enter добавляет или убирает деталь.</p>
+                    </div>
+                </article>
+
+                <article class="faq-card">
+                    <div class="faq-media">
+                        <img src="images/faq/part-training.gif" alt="Статистика детали и запуск отдельной тренировки" loading="lazy">
+                        <span class="faq-number">02</span>
+                    </div>
+                    <div class="faq-copy">
+                        <h3>Можно тренировать одну деталь?</h3>
+                        <p>Да. Открой «Информация», выбери деталь и запусти отдельную тренировку.</p>
+                    </div>
+                </article>
+
+                <article class="faq-card">
+                    <div class="faq-media">
+                        <img src="images/faq/leaderboard.gif" alt="Таблица лидеров с результатами игроков" loading="lazy">
+                        <span class="faq-number">03</span>
+                    </div>
+                    <div class="faq-copy">
+                        <h3>Где смотреть прогресс?</h3>
+                        <p>Во вкладке «Таблица лидеров»: лучшее и среднее время, количество деталей и позиция в рейтинге.</p>
+                    </div>
+                </article>
+
+                <article class="faq-card">
+                    <div class="faq-media">
+                        <img src="images/faq/profile-settings.gif" alt="Настройки профиля и интерфейса" loading="lazy">
+                        <span class="faq-number">04</span>
+                    </div>
+                    <div class="faq-copy">
+                        <h3>Что можно настроить?</h3>
+                        <p>Выбери, какие детали будут выпадать, настрой профиль и интерфейс. При желании включи симуляцию пинга.</p>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="section" aria-labelledby="team-title">
+            <div class="team-panel">
+                <div>
+                    <p class="section-label">Команда</p>
+                    <h2 id="team-title">Авторы проекта</h2>
+                </div>
+                <div class="team-list">
+                    <div class="team-member"><strong>Sam_Eferleah</strong><span>Создатель</span></div>
+                    <div class="team-member"><strong>Carabas_Barabas</strong><span>Помощь</span></div>
+                    <div class="team-member"><strong>Morty_Grimes</strong><span>Помощь</span></div>
+                    <div class="team-member"><strong>Zibert_Mentality</strong><span>Помощь</span></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="links-row">
+            <a href="https://t.me/arzldet" target="_blank" rel="noreferrer" class="action-link">
+                <span class="action-icon" aria-hidden="true">✈</span>
+                <span class="action-copy"><strong>Telegram</strong><span>Новости проекта</span></span>
+            </a>
+            <a href="https://www.donationalerts.com/r/arzldet" target="_blank" rel="noreferrer" class="action-link donate">
+                <span class="action-icon" aria-hidden="true">♥</span>
+                <span class="action-copy"><strong>Поддержать</strong><span>Развитие тренажёра</span></span>
+            </a>
         </div>
     </main>
 
-    <div class="media-footer">
-        <a href="https://t.me/arzldet" target="_blank" class="action-card tg">
-            <div class="icon">✈️</div>
-            <div class="card-title">Telegram</div>
-            <div class="card-desc">Следить за новостями</div>
-        </a>
-
-        <div class="video-container">
-            <iframe 
-                src="https://www.youtube.com/embed/f5QDvrV6sDU" 
-                title="Гайд по использованию тренажера" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen
-                loading="lazy">
-            </iframe>
-        </div>
-
-        <a href="https://www.donationalerts.com/r/arzldet" target="_blank" class="action-card donate">
-            <div class="icon">❤️</div>
-            <div class="card-title">Поддержать</div>
-            <div class="card-desc">Помочь развитию</div>
-        </a>
-    </div>
-
     <footer class="site-footer">
-        <div class="footer-inner">
-            <div class="footer-left">
-                <div class="copyright">© 2025 ARZldet.</div>
-                <a href="legal.html#terms" class="footer-link">Пользовательское Соглашение</a>
-                <a href="legal.html#privacy" class="footer-link">Privacy Policy</a>
-            </div>
-            
-            <div class="footer-right">
-                <div style="font-size: 14px; color: var(--text-secondary); margin-bottom: 8px;">
-                
-                </div>
-                <a href="mailto:arzldet@gmail.com" class="footer-link">arzldet@gmail.com</a>
-            </div>
+        <div class="footer-inner shell">
+            <span>© 2026 ARZldet</span>
+            <nav class="footer-links" aria-label="Документы и контакты">
+                <a href="legal.html#terms">Соглашение</a>
+                <a href="legal.html#privacy">Конфиденциальность</a>
+                <a href="mailto:arzldet@gmail.com">arzldet@gmail.com</a>
+            </nav>
         </div>
     </footer>
-
-    <div id="profileModal" class="profile-modal" onclick="closeProfile(event)">
-        <div class="profile-card">
-            <button class="close-modal" onclick="closeProfile(event, true)">&times;</button>
-            
-            <div class="profile-header">
-                <div class="profile-alias-label">Профиль</div>
-                <div class="profile-nick" id="modalNick"></div>
-                <div class="profile-alias" id="modalAlias"></div>
-            </div>
-
-            <div class="contribution-list" id="modalContrib">
-                <!-- Контент будет добавлен через JS -->
-            </div>
-        </div>
-    </div>
-
-    <script>
-      
-        function openProfile(id) {
-            const member = teamData[id];
-            if (!member) return;
-
-            document.getElementById('modalNick').textContent = member.nick;
-            document.getElementById('modalAlias').textContent = member.alias;
-
-            const contribContainer = document.getElementById('modalContrib');
-            contribContainer.innerHTML = '';
-            
-            member.contributions.forEach(item => {
-                const div = document.createElement('div');
-                div.className = 'contribution-item';
-                div.innerHTML = `
-                    <span class="contribution-icon">${item.icon}</span>
-                    <span>${item.text}</span>
-                `;
-                contribContainer.appendChild(div);
-            });
-
-            document.getElementById('profileModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeProfile(event, force = false) {
-            const modal = document.getElementById('profileModal');
-            if (force || event.target === modal) {
-                modal.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        }
-
-        // Закрытие по ESC
-        document.addEventListener('keydown', function(event) {
-            if (event.key === "Escape") {
-                document.getElementById('profileModal').classList.remove('active');
-                document.body.style.overflow = '';
-            }
-        });
-
-        // Анимация при загрузке
-        document.addEventListener('DOMContentLoaded', () => {
-            const elements = document.querySelectorAll('.feature-card, .credits-container, .keyboard-shortcuts');
-            elements.forEach((el, i) => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(20px)';
-                
-                setTimeout(() => {
-                    el.style.transition = 'all 0.6s ease';
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                }, 100 + i * 100);
-            });
-        });
-    </script>
-
 </body>
 </html>
