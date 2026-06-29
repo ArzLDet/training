@@ -2941,13 +2941,26 @@ function abortCatchingSession(silent = false) {
         }
     }
 
+    function isSpawnedPartInCart(part) {
+        return cartItems.some(item => item.name === part.name && item.tier === part.tier);
+    }
+
+    function hasUncaughtSpawnedParts() {
+        return spawnedParts.some(part => {
+            const status = part.statusElement ? part.statusElement.textContent.trim() : '';
+            return status === 'В наличии' && !isSpawnedPartInCart(part);
+        });
+    }
+
     async function activateCatchingMode() {
         if (isCatchStartPending) return;
         if (compGameActive) return; // В соревновании ловля автоматическая
 
-        const hasUnpurchasedParts = spawnedParts.length > 0;
-        if (hasUnpurchasedParts) {
-            alert('Сначала купите все текущие детали!');
+        const hasActiveCatchSession = isCatchingMode || spawnedParts.length > 0 || cartItems.length > 0;
+        if (hasActiveCatchSession) {
+            if (hasUncaughtSpawnedParts()) {
+                alert('Сначала купите все текущие детали!');
+            }
             return;
         }
         isCatchStartPending = true;
